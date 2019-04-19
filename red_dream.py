@@ -13,7 +13,7 @@ logging.basicConfig(level=logging.INFO)
 sessionStorage = {}
 
 
-@app.route('/post', methods=['POST'])
+@app.route('/red_dream', methods=['POST'])
 def main():
     logging.info('Request: %r', request.json)
 
@@ -34,7 +34,7 @@ def main():
     return json.dumps(response)
 
 
-def start(req, res):
+def handle_dialog(req, res):
     user_id = req['session']['user_id']
 
     if req['session']['new']:
@@ -66,12 +66,14 @@ def start(req, res):
                 res['response']['text'] = 'Не поняла ответа! Так да или нет?'
                 init_buttons(req, res, ["Да", "Нет"])
         else:
-            handle_dialog(res, req)
+            game(res, req)
 
 
-def handle_dialog(req, res):
-    # Мнимая функция начала
-    pass
+def game(req, res):
+    user_id = req["session"]["user_id"]
+    text = req["request"]["original_utterance"]
+    result = ""
+    res["response"]["text"] = "result"
 
 
 def get_first_name(req):
