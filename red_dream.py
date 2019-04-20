@@ -1,3 +1,9 @@
+"""
+
+-> medal.pythonanywhere.com <-
+
+"""
+
 # medal red dream
 # импортируем библиотеки
 from flask import Flask, request
@@ -7,15 +13,23 @@ import math
 
 import json
 
+
+class GameData:
+    pass
+
+
 app = Flask(__name__)
 
 logging.basicConfig(level=logging.INFO)
 sessionStorage = {}
 
 
-@app.route('/post', methods=['POST'])
+@app.route('/reddream', methods=['POST'])
 def main():
     logging.info('Request: %r', request.json)
+
+    with open("/home/medal/mysite/quest.json", "r", encoding="utf8") as file:
+        GameData.quest_data = json.loads(file.read())
 
     # Начинаем формировать ответ, согласно документации
     # мы собираем словарь, который потом при помощи библиотеки json преобразуем в JSON и отдадим Алисе
@@ -70,9 +84,8 @@ def start(req, res):
 
 
 def handle_dialog(req, res):
-    res['response']['text'] = "ОК"
-    # Мнимая функция начала
-    pass
+    res['response']['text'] = GameData.quest_data["questions"][0]["text"]
+    return
 
 
 def get_first_name(req):
@@ -138,4 +151,5 @@ def init_buttons(req, res, buttons):
 
 
 if __name__ == '__main__':
+
     app.run()
