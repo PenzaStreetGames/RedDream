@@ -13,7 +13,7 @@ logging.basicConfig(level=logging.INFO)
 sessionStorage = {}
 
 
-@app.route('/red_dream', methods=['POST'])
+@app.route('/post', methods=['POST'])
 def main():
     logging.info('Request: %r', request.json)
 
@@ -27,14 +27,14 @@ def main():
         }
     }
 
-    handle_dialog(request.json, response)
+    start(request.json, response)
 
     logging.info('Response: %r', request.json)
 
     return json.dumps(response)
 
 
-def handle_dialog(req, res):
+def start(req, res):
     user_id = req['session']['user_id']
 
     if req['session']['new']:
@@ -51,14 +51,14 @@ def handle_dialog(req, res):
             res['response']['text'] = 'Не расслышала имя. Повтори, пожалуйста!'
         else:
             sessionStorage[user_id]['first_name'] = first_name
-            res['response']['text'] = f'Приятно познакомиться, {first_name.title()}. Я Алиса. Отгадаешь город по фото?'
+            res['response']['text'] = f'Приятно познакомиться, {first_name.title()}. Я Алиса. Сыграешь в игру?'
             init_buttons(req, res, ["Да", "Нет"])
 
     else:
         if not sessionStorage[user_id]['game_started']:
             if 'да' in req['request']['nlu']['tokens']:
                 sessionStorage[user_id]['game_started'] = True
-                handle_dialog(res, req)
+                handle_dialog(req, res)
             elif 'нет' in req['request']['nlu']['tokens']:
                 res['response']['text'] = 'Ну и ладно!'
                 res['end_session'] = True
@@ -66,14 +66,13 @@ def handle_dialog(req, res):
                 res['response']['text'] = 'Не поняла ответа! Так да или нет?'
                 init_buttons(req, res, ["Да", "Нет"])
         else:
-            game(res, req)
+            handle_dialog(req, res)
 
 
-def game(req, res):
-    user_id = req["session"]["user_id"]
-    text = req["request"]["original_utterance"]
-    result = ""
-    res["response"]["text"] = "result"
+def handle_dialog(req, res):
+    res['response']['text'] = "ОК"
+    # Мнимая функция начала
+    pass
 
 
 def get_first_name(req):
