@@ -10,12 +10,44 @@ from flask import Flask, request
 import logging
 import requests
 import math
-
+import random
 import json
 
 
-class GameData:
-    pass
+class User:
+    quest_data = {}
+
+    def __init__(self, id):
+        self.move = 0
+        self.id = id
+        self.period = ""
+        self.government = 0
+        self.economy = 0
+        self.military = 0
+        self.control = 0
+        self.communism = 0
+        self.questions = None
+
+
+class Question:
+
+    def __init__(self, obj):
+        self.text = obj["text"]
+        self.date = obj["date"]
+        self.period = obj["period"]
+        self.answers = obj["answers"]
+
+    def get_answers_titles(self):
+        return [el["text"] for el in self.answers]
+
+    def get_effects_on_answer(self, data):
+        for answer in self.answers:
+            if answer["text"] == data:
+                return answer["effects"]
+
+    def __str__(self):
+        return self.text
+
 
 
 app = Flask(__name__)
@@ -29,7 +61,7 @@ def main():
     logging.info('Request: %r', request.json)
 
     with open("/home/medal/mysite/quest.json", "r", encoding="utf8") as file:
-        GameData.quest_data = json.loads(file.read())
+        User.quest_data = json.loads(file.read())
 
     # Начинаем формировать ответ, согласно документации
     # мы собираем словарь, который потом при помощи библиотеки json преобразуем в JSON и отдадим Алисе
@@ -40,6 +72,7 @@ def main():
             'end_session': False
         }
     }
+    user_id = request.json['session']['user_id']
 
     start(request.json, response)
 
@@ -53,9 +86,13 @@ def start(req, res):
 
     if req['session']['new']:
         res['response']['text'] = 'Привет! Назови своё имя!'
+        user = User(user_id)
+        user.questions = make_questions_list(User.quest_data)
         sessionStorage[user_id] = {
             'first_name': None,  # здесь будет храниться имя
-            'game_started': False  # здесь информация о том, что пользователь начал игру. По умолчанию False
+            'game_started': False,  # здесь информация о том, что пользователь начал игру. По умолчанию False
+            'user': user,
+            "current_question": 0
         }
         return
 
@@ -84,7 +121,12 @@ def start(req, res):
 
 
 def handle_dialog(req, res):
-    res['response']['text'] = GameData.quest_data["questions"][0]["text"]
+    user_id = req['session']['user_id']
+    current = sessionStorage[user_id]['current_question']
+    next_question = Question(sessionStorage[user_id]["user"].questions[current])
+    res['response']['text'] = str(next_question)
+    init_buttons(req, res, next_question.get_answers_titles())
+    sessionStorage[user_id]['current_question'] += 1
     return
 
 
@@ -150,6 +192,15 @@ def init_buttons(req, res, buttons):
     ]
 
 
-if __name__ == '__main__':
+def make_questions_list(data):
+    questions_list = []
+    for question in data["questions"]:
+        questions_list.append(question)
 
+    questions_list.sort(key=lambda el: el["date"])
+
+    return questions_list
+
+
+if __name__ == '__main__':
     app.run()

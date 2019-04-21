@@ -47,3 +47,14 @@ def is_null_variant_causes(data):
 with open("quest.json", "r", encoding="utf8") as file:
     quest = json.loads(file.read())
 
+
+def make_questions_list(data):
+    questions_list = []
+    for question in data["questions"]:
+        questions_list.append(question)
+
+    questions_list.sort(key=lambda el: el["date"])
+
+    return questions_list
+
+print(make_questions_list(quest))
