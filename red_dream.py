@@ -60,7 +60,7 @@ sessionStorage = {}
 def main():
     logging.info('Request: %r', request.json)
 
-    with open("/home/medal/mysite/quest.json", "r", encoding="utf8") as file:
+    with open("quest.json", "r", encoding="utf8") as file:
         User.quest_data = json.loads(file.read())
 
     # Начинаем формировать ответ, согласно документации
