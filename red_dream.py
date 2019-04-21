@@ -24,7 +24,7 @@ logging.basicConfig(level=logging.INFO)
 sessionStorage = {}
 
 
-@app.route('/reddream', methods=['POST'])
+@app.route('/red_dream', methods=['POST'])
 def main():
     logging.info('Request: %r', request.json)
 
