@@ -15,7 +15,9 @@ import json
 
 
 class GameData:
-    pass
+
+    def __init__(self):
+        self.quest_data = {}
 
 
 app = Flask(__name__)
