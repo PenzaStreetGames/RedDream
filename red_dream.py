@@ -28,6 +28,13 @@ class User:
         self.communism = 0
         self.questions = None
 
+    def change_params(self, params):
+        self.government *= params["government"]
+        self.economy *= params["military"]
+        self.military *= params["military"]
+        self.control *= params["control"]
+        self.communism *= params["communism"]
+
 
 class Question:
 
@@ -45,9 +52,13 @@ class Question:
             if answer["text"] == data:
                 return answer["effects"]
 
+    def get_cause_effect(self, data):
+        for answer in self.answers:
+            if answer["text"] == data:
+                return answer["cause"]
+
     def __str__(self):
         return self.text
-
 
 
 app = Flask(__name__)
@@ -121,12 +132,33 @@ def start(req, res):
 
 
 def handle_dialog(req, res):
+    try:
+        user_id = req['session']['user_id']
+        current = sessionStorage[user_id]['current_question']
+        next_question = Question(sessionStorage[user_id]["user"].questions[current])
+        if current:
+            past_question = Question(sessionStorage[user_id]["user"].questions[current - 1])
+            analyze_answer(req, res, past_question.get_cause_effect(req['request']['original_utterance']),
+                           past_question.get_effects_on_answer(req['request']['original_utterance']))
+
+            res['response']['text'] += "\n" + str(next_question)
+        else:
+            res['response']['text'] = str(next_question)
+        init_buttons(req, res, next_question.get_answers_titles())
+        sessionStorage[user_id]['current_question'] += 1
+        return
+    except IndexError:
+        res['response']['text'] = 'Игра закончена'
+
+
+def analyze_answer(req, res, effect, params):
     user_id = req['session']['user_id']
-    current = sessionStorage[user_id]['current_question']
-    next_question = Question(sessionStorage[user_id]["user"].questions[current])
-    res['response']['text'] = str(next_question)
-    init_buttons(req, res, next_question.get_answers_titles())
-    sessionStorage[user_id]['current_question'] += 1
+    user = sessionStorage[user_id]['user']
+    user.change_params(params)
+    res['response']['text'] = effect
+    # if not is_liveable(req, res, user.get_params()):
+    #   res['response']['text'] = 'Игра закончена'
+    #    return
     return
 
 
@@ -194,8 +226,11 @@ def init_buttons(req, res, buttons):
 
 def make_questions_list(data):
     questions_list = []
-    for question in data["questions"]:
-        questions_list.append(question)
+    counts = {}
+    for question in sorted(data["questions"], key=lambda key: random.random()):
+        counts[question["period"]] = counts.get(question["period"], 0) + 1
+        if counts[question["period"]] <= 2:
+            questions_list.append(question)
 
     questions_list.sort(key=lambda el: el["date"])
 
