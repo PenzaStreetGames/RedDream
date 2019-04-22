@@ -28,6 +28,15 @@ class User:
         self.communism = 0
         self.questions = None
 
+    def get_params(self):
+        return {
+            "government": self.government,
+            "economy": self.economy,
+            "military": self.military,
+            "control": self.control,
+            "communism": self.communism,
+        }
+
     def change_params(self, params):
         self.government *= params["government"]
         self.economy *= params["military"]
@@ -103,7 +112,8 @@ def start(req, res):
             'first_name': None,  # здесь будет храниться имя
             'game_started': False,  # здесь информация о том, что пользователь начал игру. По умолчанию False
             'user': user,
-            "current_question": 0
+            "current_question": 0,
+            "echo_effect": False
         }
         return
 
@@ -134,18 +144,26 @@ def start(req, res):
 def handle_dialog(req, res):
     try:
         user_id = req['session']['user_id']
+        if not is_liveable(req, res, sessionStorage[user_id]["user"].get_params()):
+            pass
+            # res['end_session'] = True
+            # return
         current = sessionStorage[user_id]['current_question']
+        echo_effect = sessionStorage[user_id]['echo_effect']
         next_question = Question(sessionStorage[user_id]["user"].questions[current])
-        if current:
+        if current and echo_effect:
             past_question = Question(sessionStorage[user_id]["user"].questions[current - 1])
             analyze_answer(req, res, past_question.get_cause_effect(req['request']['original_utterance']),
                            past_question.get_effects_on_answer(req['request']['original_utterance']))
 
-            res['response']['text'] += "\n" + str(next_question)
-        else:
-            res['response']['text'] = str(next_question)
+            init_buttons(req, res, ["Дальше"])
+            sessionStorage[user_id]['echo_effect'] = False
+            return
+        res['response']['text'] = str(next_question)
         init_buttons(req, res, next_question.get_answers_titles())
         sessionStorage[user_id]['current_question'] += 1
+        sessionStorage[user_id]['echo_effect'] = True
+
         return
     except IndexError:
         res['response']['text'] = 'Игра закончена'
@@ -183,24 +201,20 @@ def change_period(req, res, count_answers, users_answers):
 
 def is_liveable(req, res, params):
     """ Проверка жизнеспособности страны """
-    # params - словарь показателей страны
-    #   (name: показатель, value: значение, max: максимум, min: минимум,
-    #       warn_min: предупреждение, warn_max: предупреждение
-    #       end_max: концовка 1, end_min: концовка 2)
     for param in params:
-        if param["value"] == param["max"]:
-            res['response']['text'] = param["end_max"]
-            return
-        elif param["value"] == param["min"]:
-            res['response']['text'] = param["end_min"]
-            return
-        elif round(param["value"]) == param["min"]:
-            res['response']['text'] = param["warn_min"]
-            return
-        elif round(param["value"]) == param["max"]:
-            res['response']['text'] = param["warn_max"]
-            return
-    return
+        if params[param] >= 1:
+            res['response']['text'] = User.quest_data["endings"][f"{param} max"]
+            return False
+        elif params[param] < 0.05:
+            res['response']['text'] = User.quest_data["endings"][f"{param} min"]
+            return False
+        elif round(params[param]) == 1:
+            res['response']['text'] = User.quest_data["warnings"][f"{param} high"]
+            return True
+        elif round(params[param]) == 0:
+            res['response']['text'] = User.quest_data["warnings"][f"{param} low"]
+            return True
+    return True
 
 
 def question(req, res, text, variants, results):
