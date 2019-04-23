@@ -159,11 +159,11 @@
           "alternative": true,
           "effects":
           {
-            "government": 0,
-            "economy": 0,
-            "military": 0,
-            "control": 0,
-            "communism": 0
+            "government": -3,
+            "economy": 5,
+            "military": 7,
+            "control": 10,
+            "communism": 3
           },
           "cause": "Угнетение народа порождает новые вспышки коммунизма. Экономика тормозится."
         }
