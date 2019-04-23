@@ -142,8 +142,8 @@ def start(req, res):
 
 
 def handle_dialog(req, res):
+    user_id = req['session']['user_id']
     try:
-        user_id = req['session']['user_id']
         if not is_liveable(req, res, sessionStorage[user_id]["user"].get_params()):
             pass
             # res['end_session'] = True
@@ -167,6 +167,10 @@ def handle_dialog(req, res):
         return
     except IndexError:
         res['response']['text'] = 'Игра закончена'
+        records = {sessionStorage[user_id]['first_name']: sessionStorage[user_id]["user"].get_params()}
+
+        with open("/home/medal/mysite/records.json", "w", encoding="utf8") as file:
+            file.write(json.dumps(records))
 
 
 def analyze_answer(req, res, effect, params):
