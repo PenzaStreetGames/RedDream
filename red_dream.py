@@ -42,7 +42,7 @@ class User:
         self.military += params["military"]
         self.control += params["control"]
         self.communism += params["communism"]
-        step = 0.4
+        step = 0.3
         delta = params.copy()
         delta["communism"] = (sum([self.government, self.economy,
                                     self.military, self.control])
@@ -192,7 +192,7 @@ def handle_dialog(req, res):
             res['response']['card']['type'] = 'BigImage'
             res['response']['card']['title'] = user.jumps_questions[current].title() + "." + \
                                                quest["jumps"][user.jumps_questions[current]]["text"]
-            res['response']['card']['image_id'] = quest["jumps"][user.jumps_questions[current]]["image_leha"]
+            res['response']['card']['image_id'] = quest["jumps"][user.jumps_questions[current]]["image"]
             res['response']['text'] = user.jumps_questions[current].title()
 
             init_buttons(req, res, ["Приступаем!"])
