@@ -43,7 +43,9 @@ class User:
         self.military += params["military"]
         self.control += params["control"]
         self.communism += params["communism"]
-        # формула
+        step = 2
+        self.communism += (sum([self.government, self.economy, self.military,
+                                self.control]) / 4 - 0.5) * step
 
 
 class Question:
