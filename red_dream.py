@@ -259,5 +259,27 @@ def make_questions_list(data):
     return questions_list
 
 
+def string_effects(effects, delta=False):
+    government = effects["government"]
+    economy = effects["economy"]
+    military = effects["military"]
+    control = effects["control"]
+    communism = effects["communism"]
+    if not delta:
+        return f"п {government} э {economy} в {military} н {control} к " \
+               f"{round(communism, 2)}"
+    else:
+        signs = [
+            "+" if government >= 0 else "-",
+            "+" if economy >= 0 else "-",
+            "+" if military >= 0 else "-",
+            "+" if control >= 0 else "-",
+            "+" if communism >= 0 else "-"
+        ]
+        return f"п {signs[0]}{government} э {signs[1]}{economy} в " \
+               f"{signs[2]}{military} н {signs[3]}{control} " \
+               f"к {signs[4]}{round(communism, 2)}"
+
+
 if __name__ == '__main__':
     app.run()
