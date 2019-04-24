@@ -3,51 +3,75 @@
   [
     {
       "name": "царская россия",
-      "length": 2
+      "length": 2,
+      "image": "997614/32af03468d89475dd24f",
+      "image_leha": "1030494/277e6e842b2a28d89127"
     },
     {
       "name": "первая мировая",
-      "length": 2
+      "length": 2,
+      "image": "1652229/9c1518c2a3fb0f101069",
+      "image_leha": "1656841/4fd7900da0862a1de6d4"
     },
     {
       "name": "революция",
-      "length": 2
+      "length": 2,
+      "image": "213044/48895195bcad69152e5b",
+      "image_leha": "997614/0ee1814fd030200b2edc"
     },
     {
       "name": "становление ссср",
-      "length": 1
+      "length": 1,
+      "image": "1652229/439d1c3e0b5ab9b09c4a",
+      "image_leha": "1540737/4229f25cc1816ef42227"
     },
     {
       "name": "довоенный период",
-      "length": 2
+      "length": 2,
+      "image": "1652229/954063ece0d9e3ef1149",
+      "image_leha": "1540737/30caf97bc75f1a606880"
     },
     {
       "name": "отечественная война",
-      "length": 4
+      "length": 4,
+      "image": "1652229/b4c84e4f5b3094f97916",
+      "image_leha": "1652229/8bfccbee3cb9f5bd7c0f"
     },
     {
       "name": "восстановление страны",
-      "length": 1
+      "length": 1,
+      "image": "965417/b7581a9045675785a2f9",
+      "image_leha": "1652229/bca5e6187ad699ed6fa5"
     },
     {
       "name": "хрущёвская оттепель",
-      "length": 2
+      "length": 2,
+      "image": "1652229/a0405c209cc5c629817f",
+      "image_leha": "1652229/aefc9ed73d110c33c9a0"
     },
     {
       "name": "период застоя",
-      "length": 2
+      "length": 2,
+      "image": "1521359/beed4b17422ee58dc9d4",
+      "image_leha": "1652229/1392b351b52934946a8a"
     },
     {
       "name": "перестройка",
-      "length": 2
+      "length": 2,
+      "image": "965417/0215dd7de791c06fed30",
+      "image_leha": "1030494/5d01b2e29424fe7c79d4"
     },
     {
       "name": "борьба с распадом",
-      "length": 2
+      "length": 2,
+      "image": "1540737/41298c1f7e0a27290615",
+      "image_leha": "965417/2e701330b996183bab74"
     },
     {
       "name": "процветание союза",
-      "length": 2
+      "length": 2,
+      "image": "965417/b1f39d5a19410cf04519",
+      "image_leha": "1521359/be7ce34bb2a7bfacc568"
     }
   ],
   "jumps":
