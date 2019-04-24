@@ -1,7 +1,5 @@
 """
-
 -> medal.pythonanywhere.com <-
-
 """
 
 # medal red dream
@@ -38,17 +36,27 @@ class User:
         }
 
     def change_params(self, params):
-        delta = params.copy()
-        step = 0.1
-        delta["communism"] += (sum([self.government, self.economy,
-                                    self.military, self.control]) / 4
-                               - 0.5) * step
         self.government += params["government"]
         self.economy += params["military"]
         self.military += params["military"]
         self.control += params["control"]
         self.communism += params["communism"]
+        step = 0.1
+        delta = params.copy()
+        delta["communism"] = (sum([self.government, self.economy,
+                                    self.military, self.control]) / 4
+                               - 0.5) * step
+        self.communism += delta["communism"]
+        logging.error((sum([self.government, self.economy, self.military,
+                                self.control]) / 4 - 50))
         return delta
+
+    def __str__(self):
+        return f"Политическая власть: {self.government}\n" + \
+               f"Экономика: {self.economy}\n" + \
+               f"Военная мощь: {self.military}\n" + \
+               f"Котроль над народом: {self.control}\n" + \
+               f"Коммунизм: {self.communism}\n"
 
 
 class Question:
@@ -80,7 +88,7 @@ app = Flask(__name__)
 
 logging.basicConfig(level=logging.INFO)
 sessionStorage = {}
-with open("quest.json", "r", encoding="utf8") as file:
+with open("/home/medal/mysite/quest.json", "r", encoding="utf8") as file:
     quest = json.loads(file.read())
 
 
@@ -150,6 +158,10 @@ def start(req, res):
 
 def handle_dialog(req, res):
     user_id = req['session']['user_id']
+    if req['request']['original_utterance'] == "Статистика":
+        res['response']['text'] = str(sessionStorage[user_id]["user"])
+        init_buttons(req, res)
+        return
     try:
         if not is_liveable(req, res, sessionStorage[user_id]["user"].get_params()):
             pass
@@ -163,7 +175,7 @@ def handle_dialog(req, res):
             analyze_answer(req, res, past_question.get_cause_effect(req['request']['original_utterance']),
                            past_question.get_effects_on_answer(req['request']['original_utterance']))
 
-            init_buttons(req, res, ["Дальше"])
+            init_buttons(req, res, ["Дальше", "Статистика", "Помощь"])
             sessionStorage[user_id]['echo_effect'] = False
             return
         res['response']['text'] = str(next_question)
@@ -173,7 +185,6 @@ def handle_dialog(req, res):
 
         return
     except IndexError:
-        res['response']['text'] = 'Игра закончена'
         records = {sessionStorage[user_id]['first_name']: sessionStorage[user_id]["user"].get_params()}
 
         with open("/home/medal/mysite/records.json", "w", encoding="utf8") as file:
@@ -183,10 +194,10 @@ def handle_dialog(req, res):
 def analyze_answer(req, res, effect, params):
     user_id = req['session']['user_id']
     user = sessionStorage[user_id]['user']
-    delta = user.change_params(params)
-    res['response']['text'] = effect + "\n" + string_effects(delta)
+    user.change_params(params)
+    res['response']['text'] = effect
     if not is_liveable(req, res, user.get_params()):
-        res['response']['text'] = 'Игра закончена'
+        res['response']['text'] += '\nИгра закончена!'
         return
     return
 
@@ -212,18 +223,23 @@ def change_period(req, res, count_answers, users_answers):
 
 def is_liveable(req, res, params):
     """ Проверка жизнеспособности страны """
+    echo = res['response'].get('text', '')
     for param in params:
         if params[param] >= quest["value_max"]:
-            res['response']['text'] = User.quest_data["endings"][f"{param} max"]
+            echo += "\n\n" + User.quest_data["endings"][f"{param} max"]
+            res['response']["text"] = echo
             return False
         elif params[param] <= quest["value_min"]:
-            res['response']['text'] = User.quest_data["endings"][f"{param} min"]
+            echo += "\n\n" + User.quest_data["endings"][f"{param} min"]
+            res['response']["text"] = echo
             return False
         elif params[param] >= quest["value_lot"]:
-            res['response']['text'] = User.quest_data["warnings"][f"{param} high"]
+            echo += "\n\n" + User.quest_data["warnings"][f"{param} high"]
+            res['response']["text"] = echo
             return True
         elif params[param] <= quest["value_few"]:
-            res['response']['text'] = User.quest_data["warnings"][f"{param} low"]
+            echo += "\n\n" + User.quest_data["warnings"][f"{param} low"]
+            res['response']["text"] = echo
             return True
     return True
 
@@ -239,7 +255,10 @@ def question(req, res, text, variants, results):
             res['response']['text'] = results[i]
 
 
-def init_buttons(req, res, buttons):
+def init_buttons(req, res, buttons=None):
+    user_id = req['session']['user_id']
+    if not buttons:
+        buttons = sessionStorage[user_id]["buttons"].copy()
     res['response']['buttons'] = [
         {
             'title': button,
@@ -247,6 +266,7 @@ def init_buttons(req, res, buttons):
         } for button in buttons
 
     ]
+    sessionStorage[user_id]["buttons"] = buttons.copy()
 
 
 def make_questions_list(data):
