@@ -26,7 +26,7 @@ class User:
         self.military = quest["start_values"]["military"]
         self.control = quest["start_values"]["control"]
         self.communism = quest["start_values"]["communism"]
-        self.questions = None
+        self.questions = []
 
     def get_params(self):
         return {
