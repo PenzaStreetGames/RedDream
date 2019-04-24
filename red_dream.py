@@ -1,7 +1,5 @@
 """
-
 -> medal.pythonanywhere.com <-
-
 """
 
 # medal red dream
@@ -21,11 +19,11 @@ class User:
         self.move = 0
         self.id = id
         self.period = ""
-        self.government = 0
-        self.economy = 0
-        self.military = 0
-        self.control = 0
-        self.communism = 0
+        self.government = quest["start_values"]["government"]
+        self.economy = quest["start_values"]["economy"]
+        self.military = quest["start_values"]["military"]
+        self.control = quest["start_values"]["control"]
+        self.communism = quest["start_values"]["communism"]
         self.questions = None
 
     def get_params(self):
@@ -38,11 +36,14 @@ class User:
         }
 
     def change_params(self, params):
-        self.government *= params["government"]
-        self.economy *= params["military"]
-        self.military *= params["military"]
-        self.control *= params["control"]
-        self.communism *= params["communism"]
+        self.government += params["government"]
+        self.economy += params["military"]
+        self.military += params["military"]
+        self.control += params["control"]
+        self.communism += params["communism"]
+        step = 2
+        self.communism += (sum([self.government, self.economy, self.military,
+                                self.control]) / 4 - 0.5) * step
 
 
 class Question:
@@ -74,14 +75,15 @@ app = Flask(__name__)
 
 logging.basicConfig(level=logging.INFO)
 sessionStorage = {}
+with open("quest.json", "r", encoding="utf8") as file:
+    quest = json.loads(file.read())
 
 
-@app.route('/reddream', methods=['POST'])
+@app.route('/red_dream', methods=['POST'])
 def main():
     logging.info('Request: %r', request.json)
 
-    with open("/home/medal/mysite/quest.json", "r", encoding="utf8") as file:
-        User.quest_data = json.loads(file.read())
+    User.quest_data = quest
 
     # Начинаем формировать ответ, согласно документации
     # мы собираем словарь, который потом при помощи библиотеки json преобразуем в JSON и отдадим Алисе
@@ -178,9 +180,9 @@ def analyze_answer(req, res, effect, params):
     user = sessionStorage[user_id]['user']
     user.change_params(params)
     res['response']['text'] = effect
-    # if not is_liveable(req, res, user.get_params()):
-    #   res['response']['text'] = 'Игра закончена'
-    #    return
+    if not is_liveable(req, res, user.get_params()):
+        res['response']['text'] = 'Игра закончена'
+        return
     return
 
 
@@ -206,16 +208,16 @@ def change_period(req, res, count_answers, users_answers):
 def is_liveable(req, res, params):
     """ Проверка жизнеспособности страны """
     for param in params:
-        if params[param] >= 1:
+        if params[param] >= quest["value_max"]:
             res['response']['text'] = User.quest_data["endings"][f"{param} max"]
             return False
-        elif params[param] < 0.05:
+        elif params[param] <= quest["value_min"]:
             res['response']['text'] = User.quest_data["endings"][f"{param} min"]
             return False
-        elif round(params[param]) == 1:
+        elif params[param] >= quest["value_lot"]:
             res['response']['text'] = User.quest_data["warnings"][f"{param} high"]
             return True
-        elif round(params[param]) == 0:
+        elif params[param] <= quest["value_few"]:
             res['response']['text'] = User.quest_data["warnings"][f"{param} low"]
             return True
     return True
