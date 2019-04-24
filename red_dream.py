@@ -41,20 +41,21 @@ class User:
         self.military += params["military"]
         self.control += params["control"]
         self.communism += params["communism"]
-        step = 0.1
+        step = 0.4
         delta = params.copy()
         delta["communism"] = (sum([self.government, self.economy,
-                                    self.military, self.control]) / 4 - 0.5) * step
+                                    self.military, self.control])
+                              / 4 - 50) * step
         self.communism += delta["communism"]
         logging.error((sum([self.government, self.economy, self.military,
-                                self.control]) / 4 - 50))
+                            self.control]) / 4 - 50))
         return delta
 
     def __str__(self):
-        return f"Политическая власть: {self.government}\n" + \
-               f"Экономика: {self.economy}\n" + \
-               f"Военная мощь: {self.military}\n" + \
-               f"Котроль над народом: {self.control}\n" + \
+        return f"Политическая мощь: {round(self.government, 2)}\n" + \
+               f"Экономика: {round(self.economy, 2)}\n" + \
+               f"Военная мощь: {round(self.military, 2)}\n" + \
+               f"Котроль над народом: {round(self.control, 2)}\n" + \
                f"Коммунизм: {round(self.communism, 2)}\n"
 
 
@@ -70,8 +71,11 @@ class Question:
         return [el["text"] for el in self.answers]
 
     def get_effects_on_answer(self, data):
+        k = quest["k"]
         for answer in self.answers:
             if answer["text"] == data:
+                for effect in answer["effects"]:
+                    answer["effects"][effect] *= k
                 return answer["effects"]
 
     def get_cause_effect(self, data):
@@ -87,7 +91,7 @@ app = Flask(__name__)
 
 logging.basicConfig(level=logging.INFO)
 sessionStorage = {}
-with open("/home/medal/mysite/quest.json", "r", encoding="utf8") as file:
+with open("/home/PenzaStreetNetworks/mysite/quest.json", "r", encoding="utf8") as file:
     quest = json.loads(file.read())
 
 
@@ -186,15 +190,15 @@ def handle_dialog(req, res):
     except IndexError:
         records = {sessionStorage[user_id]['first_name']: sessionStorage[user_id]["user"].get_params()}
 
-        with open("/home/medal/mysite/records.json", "w", encoding="utf8") as file:
+        with open("/home/PenzaStreetNetworks/mysite/records.json", "w", encoding="utf8") as file:
             file.write(json.dumps(records))
 
 
 def analyze_answer(req, res, effect, params):
     user_id = req['session']['user_id']
     user = sessionStorage[user_id]['user']
-    user.change_params(params)
-    res['response']['text'] = effect + string_effects(params, delta=True)
+    delta = user.change_params(params)
+    res['response']['text'] = effect + string_effects(delta, delta=True)
     if not is_liveable(req, res, user.get_params()):
         res['response']['text'] += '\nИгра закончена!'
         return
@@ -273,7 +277,9 @@ def make_questions_list(data):
     counts = {}
     for question in sorted(data["questions"], key=lambda key: random.random()):
         counts[question["period"]] = counts.get(question["period"], 0) + 1
-        if counts[question["period"]] <= 2:
+        this_period = list(filter(lambda period: period["name"] == question[
+            "period"], quest["periods"]))[0]
+        if counts[question["period"]] <= this_period["length"]:
             questions_list.append(question)
 
     questions_list.sort(key=lambda el: el["date"])
@@ -282,14 +288,14 @@ def make_questions_list(data):
 
 
 def string_effects(effects, delta=False):
-    government = effects["government"]
-    economy = effects["economy"]
-    military = effects["military"]
-    control = effects["control"]
-    communism = effects["communism"]
+    government = round(effects["government"], 2)
+    economy = round(effects["economy"], 2)
+    military = round(effects["military"], 2)
+    control = round(effects["control"], 2)
+    communism = round(effects["communism"], 2)
     if not delta:
         return f"п {government} э {economy} в {military} н {control} к " \
-               f"{round(communism, 2)}"
+               f"{communism}"
     else:
         signs = [
             "+" if government >= 0 else "-",
@@ -300,7 +306,7 @@ def string_effects(effects, delta=False):
         ]
         return f"\n Политическа мощь: {signs[0]}{government}\n" \
                f"Эконмическая мощь: {signs[1]}{economy}\n" \
-               f"Военная мощь{signs[2]}{military}\n" \
+               f"Военная мощь: {signs[2]}{military}\n" \
                f"Контроль над народом: {signs[3]}{control}\n" \
                f"Коммунизм: {signs[4]}{round(communism, 2)}"
 
