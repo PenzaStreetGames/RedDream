@@ -38,14 +38,17 @@ class User:
         }
 
     def change_params(self, params):
+        delta = params.copy()
+        step = 0.1
+        delta["communism"] += (sum([self.government, self.economy,
+                                    self.military, self.control]) / 4
+                               - 0.5) * step
         self.government += params["government"]
         self.economy += params["military"]
         self.military += params["military"]
         self.control += params["control"]
         self.communism += params["communism"]
-        step = 2
-        self.communism += (sum([self.government, self.economy, self.military,
-                                self.control]) / 4 - 0.5) * step
+        return delta
 
 
 class Question:
@@ -180,8 +183,8 @@ def handle_dialog(req, res):
 def analyze_answer(req, res, effect, params):
     user_id = req['session']['user_id']
     user = sessionStorage[user_id]['user']
-    user.change_params(params)
-    res['response']['text'] = effect
+    delta = user.change_params(params)
+    res['response']['text'] = effect + "\n" + string_effects(delta)
     if not is_liveable(req, res, user.get_params()):
         res['response']['text'] = 'Игра закончена'
         return
