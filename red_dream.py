@@ -25,6 +25,7 @@ class User:
         self.control = quest["start_values"]["control"]
         self.communism = quest["start_values"]["communism"]
         self.questions = []
+        self.jumps_questions = []
 
     def get_params(self):
         return {
@@ -125,7 +126,7 @@ def start(req, res):
     if req['session']['new']:
         res['response']['text'] = 'Привет! Назови своё имя!'
         user = User(user_id)
-        user.questions = make_questions_list(User.quest_data)
+        user.questions, user.jumps_questions = make_questions_list(User.quest_data)
         sessionStorage[user_id] = {
             'first_name': None,  # здесь будет храниться имя
             'game_started': False,  # здесь информация о том, что пользователь начал игру. По умолчанию False
@@ -161,25 +162,41 @@ def start(req, res):
 
 def handle_dialog(req, res):
     user_id = req['session']['user_id']
+    user = sessionStorage[user_id]["user"]
     if req['request']['original_utterance'] == "Статистика":
-        res['response']['text'] = str(sessionStorage[user_id]["user"])
+        res['response']['text'] = str(user)
+        init_buttons(req, res)
+        return
+    if req['request']['original_utterance'] == "Помощь":
+        res['response']['text'] = quest["help"]
         init_buttons(req, res)
         return
     try:
-        if not is_liveable(req, res, sessionStorage[user_id]["user"].get_params()):
-            pass
-            # res['end_session'] = True
-            # return
+        if not is_liveable(req, res, user.get_params()):
+            res['end_session'] = True
+            return
         current = sessionStorage[user_id]['current_question']
+
         echo_effect = sessionStorage[user_id]['echo_effect']
-        next_question = Question(sessionStorage[user_id]["user"].questions[current])
+        next_question = Question(user.questions[current])
         if current and echo_effect:
-            past_question = Question(sessionStorage[user_id]["user"].questions[current - 1])
+            past_question = Question(user.questions[current - 1])
             analyze_answer(req, res, past_question.get_cause_effect(req['request']['original_utterance']),
                            past_question.get_effects_on_answer(req['request']['original_utterance']))
 
             init_buttons(req, res, ["Дальше", "Статистика", "Помощь"])
             sessionStorage[user_id]['echo_effect'] = False
+            return
+        if current in list(user.jumps_questions):
+            res['response']['card'] = {}
+            res['response']['card']['type'] = 'BigImage'
+            res['response']['card']['title'] = user.jumps_questions[current].title() + "." + \
+                                               quest["jumps"][user.jumps_questions[current]]["text"]
+            res['response']['card']['image_id'] = quest["jumps"][user.jumps_questions[current]]["image_leha"]
+            res['response']['text'] = user.jumps_questions[current].title()
+
+            init_buttons(req, res, ["Приступаем!"])
+            del user.jumps_questions[current]
             return
         res['response']['text'] = str(next_question)
         init_buttons(req, res, next_question.get_answers_titles())
@@ -188,7 +205,7 @@ def handle_dialog(req, res):
 
         return
     except IndexError:
-        records = {sessionStorage[user_id]['first_name']: sessionStorage[user_id]["user"].get_params()}
+        records = {sessionStorage[user_id]['first_name']: user.get_params()}
 
         with open("/home/PenzaStreetNetworks/mysite/records.json", "w", encoding="utf8") as file:
             file.write(json.dumps(records))
@@ -283,8 +300,38 @@ def make_questions_list(data):
             questions_list.append(question)
 
     questions_list.sort(key=lambda el: el["date"])
+    jumps_questions = {0: questions_list[0]["period"]}
 
-    return questions_list
+    for item, question in enumerate(questions_list):
+        if item and question["period"] != questions_list[item - 1]["period"]:
+            jumps_questions[item] = question["period"]
+    logging.error(jumps_questions)
+
+    return questions_list, jumps_questions
+
+
+def string_effects(effects, delta=False):
+    government = effects["government"]
+    economy = effects["economy"]
+    military = effects["military"]
+    control = effects["control"]
+    communism = effects["communism"]
+    if not delta:
+        return f"п {government} э {economy} в {military} н {control} к " \
+            f"{round(communism, 2)}"
+    else:
+        signs = [
+            "+" if government >= 0 else "-",
+            "+" if economy >= 0 else "-",
+            "+" if military >= 0 else "-",
+            "+" if control >= 0 else "-",
+            "+" if communism >= 0 else "-"
+        ]
+        return f"\n Политическа мощь: {signs[0]}{government}\n" \
+            f"Эконмическая мощь: {signs[1]}{economy}\n" \
+            f"Военная мощь{signs[2]}{military}\n" \
+            f"Контроль над народом: {signs[3]}{control}\n" \
+            f"Коммунизм: {signs[4]}{round(communism, 2)}"
 
 
 def string_effects(effects, delta=False):
