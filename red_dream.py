@@ -44,8 +44,7 @@ class User:
         step = 0.1
         delta = params.copy()
         delta["communism"] = (sum([self.government, self.economy,
-                                    self.military, self.control]) / 4
-                               - 0.5) * step
+                                    self.military, self.control]) / 4 - 0.5) * step
         self.communism += delta["communism"]
         logging.error((sum([self.government, self.economy, self.military,
                                 self.control]) / 4 - 50))
@@ -56,7 +55,7 @@ class User:
                f"Экономика: {self.economy}\n" + \
                f"Военная мощь: {self.military}\n" + \
                f"Котроль над народом: {self.control}\n" + \
-               f"Коммунизм: {self.communism}\n"
+               f"Коммунизм: {round(self.communism, 2)}\n"
 
 
 class Question:
@@ -195,7 +194,7 @@ def analyze_answer(req, res, effect, params):
     user_id = req['session']['user_id']
     user = sessionStorage[user_id]['user']
     user.change_params(params)
-    res['response']['text'] = effect
+    res['response']['text'] = effect + string_effects(params, delta=True)
     if not is_liveable(req, res, user.get_params()):
         res['response']['text'] += '\nИгра закончена!'
         return
@@ -299,9 +298,11 @@ def string_effects(effects, delta=False):
             "+" if control >= 0 else "-",
             "+" if communism >= 0 else "-"
         ]
-        return f"п {signs[0]}{government} э {signs[1]}{economy} в " \
-               f"{signs[2]}{military} н {signs[3]}{control} " \
-               f"к {signs[4]}{round(communism, 2)}"
+        return f"\n Политическа мощь: {signs[0]}{government}\n" \
+               f"Эконмическая мощь: {signs[1]}{economy}\n" \
+               f"Военная мощь{signs[2]}{military}\n" \
+               f"Контроль над народом: {signs[3]}{control}\n" \
+               f"Коммунизм: {signs[4]}{round(communism, 2)}"
 
 
 if __name__ == '__main__':
