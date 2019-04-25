@@ -28,6 +28,7 @@ class User:
         self.communism = quest["start_values"]["communism"]
         self.questions = []
         self.jumps_questions = []
+        self.fail = "questions limit"
 
     def get_params(self):
         """Возвращает параметры страны"""
@@ -232,11 +233,8 @@ def handle_dialog(req, res):
 
         return
     except IndexError:
-        records = {sessionStorage[user_id]['first_name']: user.get_params()}
         sessionStorage[user_id]['end_quest'] = True
-        with open("/home/medal/mysite/records.json", "w",
-                  encoding="utf8") as file:
-            file.write(json.dumps(records))
+
         init_buttons(req, res, ["Завершить"])
         return
 
@@ -245,6 +243,13 @@ def end(req, res):
     user_id = req['session']['user_id']
     user = sessionStorage[user_id]["user"]
     answer = req['request']['original_utterance']
+    with open("/home/medal/mysite/records.json", "r", encoding="utf8") as file:
+        past_records = dict(json.loads(file.read()))
+    records = {sessionStorage[user_id]['first_name']: user.fail}
+    records = dict(list(records.items()) + list(past_records.items()))
+    with open("/home/medal/mysite/records.json", "w",
+              encoding="utf8") as file:
+        file.write(json.dumps(records))
     if answer == "Создатели":
         res['response']['text'] = quest["credits"]
     elif answer == "Рекорды":
@@ -289,15 +294,20 @@ def change_period(req, res, count_answers, users_answers):
 
 def is_liveable(req, res, params):
     """ Проверка жизнеспособности страны """
+    user_id = req['session']['user_id']
     echo = res['response'].get('text', '')
+    user = sessionStorage[user_id]["user"]
+
     for param in params:
         if params[param] >= quest["value_max"]:
             echo += "\n\n" + User.quest_data["endings"][f"{param} max"]
             res['response']["text"] = echo
+            user.fail = f"{param} max"
             return False
         elif params[param] <= quest["value_min"]:
             echo += "\n\n" + User.quest_data["endings"][f"{param} min"]
             res['response']["text"] = echo
+            user.fail = f"{param} min"
             return False
         elif params[param] >= quest["value_lot"]:
             echo += "\n\n" + User.quest_data["warnings"][f"{param} high"]
