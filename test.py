@@ -87,6 +87,65 @@ def is_null_variant_causes(data):
     return "Все ответы имеют ненулевые последствия"
 
 
+def is_all_warnings(data):
+    """Есть ли все предупреждения"""
+    for stat in ["economy ", "military ", "government ", "control ", "communism "]:
+        for status in ["low", "high"]:
+            if stat + status not in data["warnings"]:
+                raise TestError(f"Отсутствует предупреждение {stat + status}")
+    if "time limit" not in data["warnings"]:
+        raise TestError("Отсутствует предупреждение time limit")
+    return "Все предупреждения на месте"
+
+
+def is_all_endings(data):
+    """Есть ли все концовки"""
+    for stat in ["economy ", "military ", "government ", "control ", "communism "]:
+        for status in ["min", "max"]:
+            if stat + status not in data["endings"]:
+                raise TestError(f"Отсутствует концовка {stat + status}")
+    if "time limit" not in data["warnings"]:
+        raise TestError("Отсутствует концовка time limit")
+    return "Все концовки на месте"
+
+
+def is_correct_start_values(data):
+    """Корректны ли начальные значения игровых параметров"""
+    for value in data["start_values"].items():
+        if value[1] < data["value_min"] or value[1] > data["value_max"]:
+            raise TestError(f"Значение {value[0]} некорректно (равно {value[1]}) и находится вне допустимых границ")
+    return "Все начальные значения корректны"
+
+
+def is_correct_periods_lengths(data):
+    """Корректны ли длины каждого периода"""
+    for period in data["periods"]:
+        num = period["length"]
+        if num < 1 or num > 8 or type(num) != int:
+            raise TestError(f"Длина периода <{period['name']}> некорректна и равна {num}")
+    return "Длины всех периодов корректны"
+
+
+def all_quest_length(data):
+    """Количество вопросов во всем квесте"""
+    return f"Кол-во вопросов в квесте равно {sum(list(map(lambda x: x['length'], data['periods'])))}"
+
+
+def longest_jump_text(data):
+    """Размер самого длинного текста среди переходов"""
+    long_jump = \
+    sorted(list(map(lambda period: (period[0], period[1]['text']), data['jumps'].items())), key=lambda x: len(x[1]))[-1]
+    return f"Длина текста самого большого перехода равна {len(long_jump[1])}, он находится в периоде <{long_jump[0]}>"
+
+
+def is_all_photos(data):
+    """Проверяет наличие всех необходимых фото"""
+    for name, image in list(map(lambda period: (period[0], period[1].get("image", None)), data["jumps"].items())):
+        if not image:
+            raise TestError(f"Отсутствует изображение в периоде <{name}>")
+    return "Все изображения на месте"
+
+
 if __name__ == '__main__':
     with open("quest.json", "r", encoding="utf8") as file:
         quest = json.loads(file.read())
@@ -97,6 +156,14 @@ if __name__ == '__main__':
         print(is_null_question_variants(quest))
         print(is_none_variant_causes(quest))
         print(is_null_variant_causes(quest))
+        print(is_all_warnings(quest))
+        print(is_all_endings(quest))
+        print(is_correct_start_values(quest))
+        print(is_correct_periods_lengths(quest))
+        print(is_all_photos(quest))
+        print(all_quest_length(quest))
+        print(longest_jump_text(quest))
+        print(is_all_photos(quest))
         print("Все тесты пройдены успешно")
     except TestError as error:
         print(error)
