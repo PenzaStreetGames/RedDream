@@ -36,9 +36,7 @@ def is_period_jumps(data):
     """ Есть ли переходы между всеми периодами """
     categories = list(map(lambda category: category["name"],
                           data["periods"]))
-    category_jumps = ["стартовый"]
-    for i in range(len(categories) - 1):
-        category_jumps += [f"{categories[i]}-{categories[i + 1]}"]
+    category_jumps = categories
     jumps = list(data["jumps"].keys())
     if category_jumps != jumps:
         raise TestError(f"Переходы различаются \n Нужны:   {category_jumps} \n "

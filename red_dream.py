@@ -1,9 +1,6 @@
 """
 -> medal.pythonanywhere.com <-
 """
-
-# medal red dream
-# импортируем библиотеки
 from flask import Flask, request
 import logging
 import requests
@@ -92,7 +89,8 @@ app = Flask(__name__)
 
 logging.basicConfig(level=logging.INFO)
 sessionStorage = {}
-with open("/home/PenzaStreetNetworks/mysite/quest.json", "r", encoding="utf8") as file:
+with open("/home/PenzaStreetNetworks/mysite/quest.json", "r",
+          encoding="utf8") as file:
     quest = json.loads(file.read())
 
 
@@ -102,8 +100,6 @@ def main():
 
     User.quest_data = quest
 
-    # Начинаем формировать ответ, согласно документации
-    # мы собираем словарь, который потом при помощи библиотеки json преобразуем в JSON и отдадим Алисе
     response = {
         'session': request.json['session'],
         'version': request.json['version'],
@@ -128,8 +124,8 @@ def start(req, res):
         user = User(user_id)
         user.questions, user.jumps_questions = make_questions_list(User.quest_data)
         sessionStorage[user_id] = {
-            'first_name': None,  # здесь будет храниться имя
-            'game_started': False,  # здесь информация о том, что пользователь начал игру. По умолчанию False
+            'first_name': None,
+            'game_started': False,
             'user': user,
             "current_question": 0,
             "echo_effect": False
@@ -142,7 +138,10 @@ def start(req, res):
             res['response']['text'] = 'Не расслышала имя. Повтори, пожалуйста!'
         else:
             sessionStorage[user_id]['first_name'] = first_name
-            res['response']['text'] = f'Приятно познакомиться, {first_name.title()}. Я Алиса. Сыграешь в игру?'
+            res['response']['text'] = f'Приятно познакомиться, ' \
+                f'{first_name.title()}. Я Алиса. Сыграешь в игру ' \
+                f'"Красная Мечта"? В ней нужно отвечать на вопросы по ' \
+                f'управлению страной и победить, построив коммунизм. Сыграем?'
             init_buttons(req, res, ["Да", "Нет"])
 
     else:
@@ -181,8 +180,10 @@ def handle_dialog(req, res):
         next_question = Question(user.questions[current])
         if current and echo_effect:
             past_question = Question(user.questions[current - 1])
-            analyze_answer(req, res, past_question.get_cause_effect(req['request']['original_utterance']),
-                           past_question.get_effects_on_answer(req['request']['original_utterance']))
+            analyze_answer(req, res, past_question.get_cause_effect(
+                req['request']['original_utterance']),
+                           past_question.get_effects_on_answer(
+                               req['request']['original_utterance']))
 
             init_buttons(req, res, ["Дальше", "Статистика", "Помощь"])
             sessionStorage[user_id]['echo_effect'] = False
@@ -190,9 +191,11 @@ def handle_dialog(req, res):
         if current in list(user.jumps_questions):
             res['response']['card'] = {}
             res['response']['card']['type'] = 'BigImage'
-            res['response']['card']['title'] = user.jumps_questions[current].title() + "." + \
-                                               quest["jumps"][user.jumps_questions[current]]["text"]
-            res['response']['card']['image_id'] = quest["jumps"][user.jumps_questions[current]]["image"]
+            res['response']['card']['title'] = user.jumps_questions[
+                current].title() + "." + quest["jumps"][
+                user.jumps_questions[current]]["text"]
+            res['response']['card']['image_id'] = quest["jumps"][
+                user.jumps_questions[current]]["image"]
             res['response']['text'] = user.jumps_questions[current].title()
 
             init_buttons(req, res, ["Приступаем!"])
@@ -207,7 +210,8 @@ def handle_dialog(req, res):
     except IndexError:
         records = {sessionStorage[user_id]['first_name']: user.get_params()}
 
-        with open("/home/PenzaStreetNetworks/mysite/records.json", "w", encoding="utf8") as file:
+        with open("/home/PenzaStreetNetworks/mysite/records.json", "w",
+                  encoding="utf8") as file:
             file.write(json.dumps(records))
 
 
@@ -223,13 +227,8 @@ def analyze_answer(req, res, effect, params):
 
 
 def get_first_name(req):
-    # перебираем сущности
     for entity in req['request']['nlu']['entities']:
-        # находим сущность с типом 'YANDEX.FIO'
         if entity['type'] == 'YANDEX.FIO':
-            # Если есть сущность с ключом 'first_name',
-            # то возвращаем ее значение.
-            # Во всех остальных случаях возвращаем None.
             return entity['value'].get('first_name', None)
 
 
