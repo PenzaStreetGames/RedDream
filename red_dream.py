@@ -10,6 +10,7 @@ import json
 
 
 class User:
+    """Пользователь навыка"""
     quest_data = {}
 
     def __init__(self, id):
@@ -25,6 +26,7 @@ class User:
         self.jumps_questions = []
 
     def get_params(self):
+        """Возвращает параметры страны"""
         return {
             "government": self.government,
             "economy": self.economy,
@@ -34,6 +36,7 @@ class User:
         }
 
     def change_params(self, params):
+        """Изменяет параметры страны"""
         self.government += params["government"]
         self.economy += params["military"]
         self.military += params["military"]
@@ -50,6 +53,7 @@ class User:
         return delta
 
     def __str__(self):
+        """Возвращает параметры страны в виде строки"""
         return f"Политическая мощь: {round(self.government, 2)}\n" + \
                f"Экономика: {round(self.economy, 2)}\n" + \
                f"Военная мощь: {round(self.military, 2)}\n" + \
@@ -58,17 +62,21 @@ class User:
 
 
 class Question:
+    """Вопрос игры"""
 
     def __init__(self, obj):
+        """инициализация вопроса"""
         self.text = obj["text"]
         self.date = obj["date"]
         self.period = obj["period"]
         self.answers = obj["answers"]
 
     def get_answers_titles(self):
+        """Вывод текста вариантов ответа"""
         return [el["text"] for el in self.answers]
 
     def get_effects_on_answer(self, data):
+        """Последствия ответа"""
         k = quest["k"]
         for answer in self.answers:
             if answer["text"] == data:
@@ -77,11 +85,13 @@ class Question:
                 return answer["effects"]
 
     def get_cause_effect(self, data):
+        """Вывод текста последствий"""
         for answer in self.answers:
             if answer["text"] == data:
                 return answer["cause"]
 
     def __str__(self):
+        """Возвращает текст вопроса"""
         return self.text
 
 
@@ -96,6 +106,7 @@ with open("/home/PenzaStreetNetworks/mysite/quest.json", "r",
 
 @app.route('/red_dream', methods=['POST'])
 def main():
+    """Каркас диалога с пользователем и Алисой"""
     logging.info('Request: %r', request.json)
 
     User.quest_data = quest
@@ -117,12 +128,14 @@ def main():
 
 
 def start(req, res):
+    """Начало разговора с пользователем"""
     user_id = req['session']['user_id']
 
     if req['session']['new']:
         res['response']['text'] = 'Привет! Назови своё имя!'
         user = User(user_id)
-        user.questions, user.jumps_questions = make_questions_list(User.quest_data)
+        user.questions, user.jumps_questions = make_questions_list(
+            User.quest_data)
         sessionStorage[user_id] = {
             'first_name': None,
             'game_started': False,
@@ -160,6 +173,7 @@ def start(req, res):
 
 
 def handle_dialog(req, res):
+    """Обработка диалога"""
     user_id = req['session']['user_id']
     user = sessionStorage[user_id]["user"]
     if req['request']['original_utterance'] == "Статистика":
@@ -216,6 +230,7 @@ def handle_dialog(req, res):
 
 
 def analyze_answer(req, res, effect, params):
+    """Анализ ответа пользователя"""
     user_id = req['session']['user_id']
     user = sessionStorage[user_id]['user']
     delta = user.change_params(params)
@@ -227,6 +242,7 @@ def analyze_answer(req, res, effect, params):
 
 
 def get_first_name(req):
+    """Получение имени пользователя"""
     for entity in req['request']['nlu']['entities']:
         if entity['type'] == 'YANDEX.FIO':
             return entity['value'].get('first_name', None)
@@ -275,6 +291,7 @@ def question(req, res, text, variants, results):
 
 
 def init_buttons(req, res, buttons=None):
+    """Инициализация кнопок"""
     user_id = req['session']['user_id']
     if not buttons:
         buttons = sessionStorage[user_id]["buttons"].copy()
@@ -289,6 +306,7 @@ def init_buttons(req, res, buttons=None):
 
 
 def make_questions_list(data):
+    """создание списка вопросов"""
     questions_list = []
     counts = {}
     for question in sorted(data["questions"], key=lambda key: random.random()):
@@ -310,30 +328,7 @@ def make_questions_list(data):
 
 
 def string_effects(effects, delta=False):
-    government = effects["government"]
-    economy = effects["economy"]
-    military = effects["military"]
-    control = effects["control"]
-    communism = effects["communism"]
-    if not delta:
-        return f"п {government} э {economy} в {military} н {control} к " \
-            f"{round(communism, 2)}"
-    else:
-        signs = [
-            "+" if government >= 0 else "-",
-            "+" if economy >= 0 else "-",
-            "+" if military >= 0 else "-",
-            "+" if control >= 0 else "-",
-            "+" if communism >= 0 else "-"
-        ]
-        return f"\n Политическа мощь: {signs[0]}{government}\n" \
-            f"Эконмическая мощь: {signs[1]}{economy}\n" \
-            f"Военная мощь{signs[2]}{military}\n" \
-            f"Контроль над народом: {signs[3]}{control}\n" \
-            f"Коммунизм: {signs[4]}{round(communism, 2)}"
-
-
-def string_effects(effects, delta=False):
+    """Вывод изменений в стране в читаемом виде"""
     government = round(effects["government"], 2)
     economy = round(effects["economy"], 2)
     military = round(effects["military"], 2)
@@ -354,7 +349,7 @@ def string_effects(effects, delta=False):
                f"Эконмическая мощь: {signs[1]}{economy}\n" \
                f"Военная мощь: {signs[2]}{military}\n" \
                f"Контроль над народом: {signs[3]}{control}\n" \
-               f"Коммунизм: {signs[4]}{round(communism, 2)}"
+               f"Коммунизм: {signs[4]}{communism}"
 
 
 if __name__ == '__main__':
