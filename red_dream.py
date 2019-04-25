@@ -176,12 +176,17 @@ def handle_dialog(req, res):
     """Обработка диалога"""
     user_id = req['session']['user_id']
     user = sessionStorage[user_id]["user"]
-    if req['request']['original_utterance'] == "Статистика":
+    answer = req['request']['original_utterance']
+    if answer == "Статистика":
         res['response']['text'] = str(user)
         init_buttons(req, res)
         return
-    if req['request']['original_utterance'] == "Помощь":
+    if answer == "Помощь":
         res['response']['text'] = quest["help"]
+        init_buttons(req, res)
+        return
+    if not answer in sessionStorage[user_id]["buttons"]:
+        res['response']['text'] = "Каво?"
         init_buttons(req, res)
         return
     try:
@@ -194,10 +199,8 @@ def handle_dialog(req, res):
         next_question = Question(user.questions[current])
         if current and echo_effect:
             past_question = Question(user.questions[current - 1])
-            analyze_answer(req, res, past_question.get_cause_effect(
-                req['request']['original_utterance']),
-                           past_question.get_effects_on_answer(
-                               req['request']['original_utterance']))
+            analyze_answer(req, res, past_question.get_cause_effect(answer),
+                           past_question.get_effects_on_answer(answer))
 
             init_buttons(req, res, ["Дальше", "Статистика", "Помощь"])
             sessionStorage[user_id]['echo_effect'] = False
@@ -339,11 +342,11 @@ def string_effects(effects, delta=False):
                f"{communism}"
     else:
         signs = [
-            "+" if government >= 0 else "-",
-            "+" if economy >= 0 else "-",
-            "+" if military >= 0 else "-",
-            "+" if control >= 0 else "-",
-            "+" if communism >= 0 else "-"
+            "+" if government >= 0 else "",
+            "+" if economy >= 0 else "",
+            "+" if military >= 0 else "",
+            "+" if control >= 0 else "",
+            "+" if communism >= 0 else ""
         ]
         return f"\n Политическа мощь: {signs[0]}{government}\n" \
                f"Эконмическая мощь: {signs[1]}{economy}\n" \
