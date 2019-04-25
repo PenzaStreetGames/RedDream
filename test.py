@@ -139,8 +139,8 @@ def all_quest_length(data):
 def longest_jump_text(data):
     """Размер самого длинного текста среди переходов"""
     long_jump = \
-    sorted(list(map(lambda period: (period[0], period[1]['text']),
-                    data['jumps'].items())), key=lambda x: len(x[1]))[-1]
+        sorted(list(map(lambda period: (period[0], period[1]['text']),
+                        data['jumps'].items())), key=lambda x: len(x[1]))[-1]
     return f"Длина текста самого большого перехода равна {len(long_jump[1])}, "\
         f"он находится в периоде <{long_jump[0]}>"
 
