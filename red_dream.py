@@ -1,9 +1,6 @@
 """
 -> medal.pythonanywhere.com <-
 """
-
-# medal red dream
-# импортируем библиотеки
 from flask import Flask, request
 import logging
 import requests
@@ -13,9 +10,14 @@ import json
 
 
 class User:
+    """Пользователь навыка"""
     quest_data = {}
 
     def __init__(self, id):
+        self.set_base()
+
+
+    def set_base(self):
         self.move = 0
         self.id = id
         self.period = ""
@@ -28,6 +30,7 @@ class User:
         self.jumps_questions = []
 
     def get_params(self):
+        """Возвращает параметры страны"""
         return {
             "government": self.government,
             "economy": self.economy,
@@ -37,50 +40,62 @@ class User:
         }
 
     def change_params(self, params):
+        """Изменяет параметры страны"""
         self.government += params["government"]
         self.economy += params["military"]
         self.military += params["military"]
         self.control += params["control"]
         self.communism += params["communism"]
-        step = 0.1
+        step = 0.3
         delta = params.copy()
         delta["communism"] = (sum([self.government, self.economy,
-                                   self.military, self.control]) / 4 - 0.5) * step
+                                    self.military, self.control])
+                              / 4 - 50) * step
         self.communism += delta["communism"]
         logging.error((sum([self.government, self.economy, self.military,
                             self.control]) / 4 - 50))
         return delta
 
     def __str__(self):
-        return f"Политическая власть: {self.government}\n" + \
-               f"Экономика: {self.economy}\n" + \
-               f"Военная мощь: {self.military}\n" + \
-               f"Котроль над народом: {self.control}\n" + \
+        """Возвращает параметры страны в виде строки"""
+        return f"Политическая мощь: {round(self.government, 2)}\n" + \
+               f"Экономика: {round(self.economy, 2)}\n" + \
+               f"Военная мощь: {round(self.military, 2)}\n" + \
+               f"Котроль над народом: {round(self.control, 2)}\n" + \
                f"Коммунизм: {round(self.communism, 2)}\n"
 
 
 class Question:
+    """Вопрос игры"""
 
     def __init__(self, obj):
+        """инициализация вопроса"""
         self.text = obj["text"]
         self.date = obj["date"]
         self.period = obj["period"]
         self.answers = obj["answers"]
 
     def get_answers_titles(self):
+        """Вывод текста вариантов ответа"""
         return [el["text"] for el in self.answers]
 
     def get_effects_on_answer(self, data):
+        """Последствия ответа"""
+        k = quest["k"]
         for answer in self.answers:
             if answer["text"] == data:
+                for effect in answer["effects"]:
+                    answer["effects"][effect] *= k
                 return answer["effects"]
 
     def get_cause_effect(self, data):
+        """Вывод текста последствий"""
         for answer in self.answers:
             if answer["text"] == data:
                 return answer["cause"]
 
     def __str__(self):
+        """Возвращает текст вопроса"""
         return self.text
 
 
@@ -94,12 +109,11 @@ with open("/home/medal/mysite/quest.json", "r", encoding="utf8") as file:
 
 @app.route('/red_dream', methods=['POST'])
 def main():
+    """Каркас диалога с пользователем и Алисой"""
     logging.info('Request: %r', request.json)
 
     User.quest_data = quest
 
-    # Начинаем формировать ответ, согласно документации
-    # мы собираем словарь, который потом при помощи библиотеки json преобразуем в JSON и отдадим Алисе
     response = {
         'session': request.json['session'],
         'version': request.json['version'],
@@ -117,15 +131,17 @@ def main():
 
 
 def start(req, res):
+    """Начало разговора с пользователем"""
     user_id = req['session']['user_id']
 
     if req['session']['new']:
         res['response']['text'] = 'Привет! Назови своё имя!'
         user = User(user_id)
-        user.questions, user.jumps_questions = make_questions_list(User.quest_data)
+        user.questions, user.jumps_questions = make_questions_list(
+            User.quest_data)
         sessionStorage[user_id] = {
-            'first_name': None,  # здесь будет храниться имя
-            'game_started': False,  # здесь информация о том, что пользователь начал игру. По умолчанию False
+            'first_name': None,
+            'game_started': False,
             'user': user,
             "current_question": 0,
             "echo_effect": False
@@ -138,7 +154,10 @@ def start(req, res):
             res['response']['text'] = 'Не расслышала имя. Повтори, пожалуйста!'
         else:
             sessionStorage[user_id]['first_name'] = first_name
-            res['response']['text'] = f'Приятно познакомиться, {first_name.title()}. Я Алиса. Сыграешь в игру?'
+            res['response']['text'] = f'Приятно познакомиться, ' \
+                f'{first_name.title()}. Я Алиса. Сыграешь в игру ' \
+                f'"Красная Мечта"? В ней нужно отвечать на вопросы по ' \
+                f'управлению страной и победить, построив коммунизм. Сыграем?'
             init_buttons(req, res, ["Да", "Нет"])
 
     else:
@@ -157,9 +176,13 @@ def start(req, res):
 
 
 def handle_dialog(req, res):
+    """Обработка диалога"""
     user_id = req['session']['user_id']
     user = sessionStorage[user_id]["user"]
     answer = req['request']['original_utterance']
+    if sessionStorage[user_id].get('end_quest') == True:
+        return end(req, res)
+
     if answer == "Статистика":
         res['response']['text'] = str(user)
         init_buttons(req, res)
@@ -174,8 +197,9 @@ def handle_dialog(req, res):
         return
     try:
         if not is_liveable(req, res, user.get_params()):
-            res['end_session'] = True
-            return
+            sessionStorage[user_id]['end_quest'] = True
+            return end(req, res)
+
         current = sessionStorage[user_id]['current_question']
 
         echo_effect = sessionStorage[user_id]['echo_effect']
@@ -191,9 +215,11 @@ def handle_dialog(req, res):
         if current in list(user.jumps_questions):
             res['response']['card'] = {}
             res['response']['card']['type'] = 'BigImage'
-            res['response']['card']['title'] = user.jumps_questions[current].title() + "." + \
-                                               quest["jumps"][user.jumps_questions[current]]["text"]
-            res['response']['card']['image_id'] = quest["jumps"][user.jumps_questions[current]]["image_leha"]
+            res['response']['card']['title'] = user.jumps_questions[
+                current].title() + "." + quest["jumps"][
+                user.jumps_questions[current]]["text"]
+            res['response']['card']['image_id'] = quest["jumps"][
+                user.jumps_questions[current]]["image"]
             res['response']['text'] = user.jumps_questions[current].title()
 
             init_buttons(req, res, ["Приступаем!"])
@@ -207,30 +233,49 @@ def handle_dialog(req, res):
         return
     except IndexError:
         records = {sessionStorage[user_id]['first_name']: user.get_params()}
-
-        with open("/home/medal/mysite/records.json", "w", encoding="utf8") as file:
+        sessionStorage[user_id]['end_quest'] = True
+        with open("/home/medal/mysite/records.json", "w",
+                  encoding="utf8") as file:
             file.write(json.dumps(records))
+        init_buttons(req, res, ["Завершить"])
+        return
+
+
+def end(req, res):
+    user_id = req['session']['user_id']
+    user = sessionStorage[user_id]["user"]
+    answer = req['request']['original_utterance']
+    if answer == "Создатели":
+        res['response']['text'] = quest["credits"]
+    elif answer == "Рекорды":
+        res['response']['text'] = "" # Records
+    elif answer == "Сыграть еще раз":
+        sessionStorage[user_id]['end_quest'] = False
+        req['session']['new'] = True
+        return start(req, res)
+    else:
+        res['response']['text'] = "Вы прошли квест."
+    init_buttons(req, res, ["Сыграть еще раз", "Рекорды", "Создатели"])
+    return
 
 
 def analyze_answer(req, res, effect, params):
+    """Анализ ответа пользователя"""
     user_id = req['session']['user_id']
     user = sessionStorage[user_id]['user']
-    user.change_params(params)
-    res['response']['text'] = effect + string_effects(params, delta=True)
+    delta = user.change_params(params)
+    res['response']['text'] = effect + string_effects(delta, delta=True)
     if not is_liveable(req, res, user.get_params()):
         res['response']['text'] += '\nИгра закончена!'
+
         return
     return
 
 
 def get_first_name(req):
-    # перебираем сущности
+    """Получение имени пользователя"""
     for entity in req['request']['nlu']['entities']:
-        # находим сущность с типом 'YANDEX.FIO'
         if entity['type'] == 'YANDEX.FIO':
-            # Если есть сущность с ключом 'first_name',
-            # то возвращаем ее значение.
-            # Во всех остальных случаях возвращаем None.
             return entity['value'].get('first_name', None)
 
 
@@ -277,6 +322,7 @@ def question(req, res, text, variants, results):
 
 
 def init_buttons(req, res, buttons=None):
+    """Инициализация кнопок"""
     user_id = req['session']['user_id']
     if not buttons:
         buttons = sessionStorage[user_id]["buttons"].copy()
@@ -291,11 +337,14 @@ def init_buttons(req, res, buttons=None):
 
 
 def make_questions_list(data):
+    """создание списка вопросов"""
     questions_list = []
     counts = {}
     for question in sorted(data["questions"], key=lambda key: random.random()):
         counts[question["period"]] = counts.get(question["period"], 0) + 1
-        if counts[question["period"]] <= 2:
+        this_period = list(filter(lambda period: period["name"] == question[
+            "period"], quest["periods"]))[0]
+        if counts[question["period"]] <= this_period["length"]:
             questions_list.append(question)
 
     questions_list.sort(key=lambda el: el["date"])
@@ -310,14 +359,15 @@ def make_questions_list(data):
 
 
 def string_effects(effects, delta=False):
-    government = effects["government"]
-    economy = effects["economy"]
-    military = effects["military"]
-    control = effects["control"]
-    communism = effects["communism"]
+    """Вывод изменений в стране в читаемом виде"""
+    government = round(effects["government"], 2)
+    economy = round(effects["economy"], 2)
+    military = round(effects["military"], 2)
+    control = round(effects["control"], 2)
+    communism = round(effects["communism"], 2)
     if not delta:
         return f"п {government} э {economy} в {military} н {control} к " \
-            f"{round(communism, 2)}"
+               f"{communism}"
     else:
         signs = [
             "+" if government >= 0 else "",
@@ -327,10 +377,10 @@ def string_effects(effects, delta=False):
             "+" if communism >= 0 else ""
         ]
         return f"\n Политическа мощь: {signs[0]}{government}\n" \
-            f"Эконмическая мощь: {signs[1]}{economy}\n" \
-            f"Военная мощь{signs[2]}{military}\n" \
-            f"Контроль над народом: {signs[3]}{control}\n" \
-            f"Коммунизм: {signs[4]}{round(communism, 2)}"
+               f"Эконмическая мощь: {signs[1]}{economy}\n" \
+               f"Военная мощь: {signs[2]}{military}\n" \
+               f"Контроль над народом: {signs[3]}{control}\n" \
+               f"Коммунизм: {signs[4]}{communism}"
 
 
 if __name__ == '__main__':
