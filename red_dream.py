@@ -355,5 +355,21 @@ def string_effects(effects, delta=False):
                f"Коммунизм: {signs[4]}{communism}"
 
 
+def get_records():
+    with open("records.json", "r",
+              encoding="utf8") as file:
+        records = json.loads(file.read())
+    winners = list(filter(lambda user: user[1]["end"] == "communism max",
+                          records.items()))[:10]
+    winners_number = 10
+    header = "\t Имя игрока \t Кол-во ходов"
+    winners = list(map(lambda user: f"\t{user[0]} \t\t\t {user[1]['time']}",
+                       winners))
+    if len(winners) < 10:
+        winners += ["\t - \t\t\t -"] * (10 - len(winners))
+    result = "\n".join([header] + winners)
+    return result
+
+
 if __name__ == '__main__':
     app.run()
