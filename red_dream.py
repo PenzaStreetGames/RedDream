@@ -3,8 +3,6 @@
 """
 from flask import Flask, request
 import logging
-import requests
-import math
 import random
 import json
 
@@ -143,8 +141,9 @@ def start(req, res):
         init_buttons(req, res)
         return
 
-    if answer == "Что ты умеешь?":
-        res['response']['text'] = quest["help"]
+    if answer == "Что ты умеешь":
+        res['response']['text'] = "Я умею задавать вопросы и обрабатывать " \
+                                  "твои ответы"
         init_buttons(req, res)
         return
 
@@ -164,17 +163,6 @@ def start(req, res):
             "current_question": 0,
             "echo_effect": False
         }
-        return
-
-    answer = req['request']['original_utterance']
-    if answer == "Помощь":
-        res['response']['text'] = quest["help"]
-        init_buttons(req, res)
-        return
-    elif answer == "Что ты умеешь?":
-        res['response']['text'] = "Я умею задавать вопросы и обрабатывать " \
-                                  "твои ответы"
-        init_buttons(req, res)
         return
 
     if sessionStorage[user_id]['first_name'] is None:
@@ -280,7 +268,7 @@ def end(req, res):
     records = {sessionStorage[user_id]['first_name']: [
         user.fail, sessionStorage[user_id]["current_question"]]}
     records = dict(list(records.items()) + list(past_records.items()))
-    with open("/home/PenzaStreetNetworks/mysite/records.json", "w",
+    with open("/home/PenzaStreetNetworks/mysite/records.json", "a",
               encoding="utf8") as file:
         file.write(json.dumps(records))
     if answer == "Создатели":
@@ -291,9 +279,14 @@ def end(req, res):
         sessionStorage[user_id]['end_quest'] = False
         req['session']['new'] = True
         return start(req, res)
+    elif answer == "Завершить":
+        res["response"]["text"] = f"Спасибо, что поиграл со мной " \
+            f"{sessionStorage[user_id]['first_name']}! Пока."
+        res["end_session"] = True
     else:
         res['response']['text'] = "Вы прошли квест."
-    init_buttons(req, res, ["Сыграть еще раз", "Рекорды", "Создатели"])
+    init_buttons(req, res, ["Сыграть еще раз", "Рекорды", "Создатели",
+                            "Завершить"])
     return
 
 
