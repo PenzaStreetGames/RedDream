@@ -75,7 +75,7 @@ def is_none_variant_causes(data):
 
 
 def is_null_variant_causes(data):
-    """ Есть ли вопросы с нудевыми последствиями """
+    """ Есть ли вопросы с нулевыми последствиями """
     for question in data['questions']:
         for answer in question["answers"]:
             effects = answer["effects"].values()
