@@ -135,6 +135,18 @@ def start(req, res):
     """Начало разговора с пользователем"""
     user_id = req['session']['user_id']
 
+    answer = req['request']['original_utterance']
+
+    if answer == "Помощь":
+        res['response']['text'] = quest["help"]
+        init_buttons(req, res)
+        return
+
+    if answer == "Что ты умеешь?":
+        res['response']['text'] = quest["help"]
+        init_buttons(req, res)
+        return
+
     if req['session']['new']:
         res['response']['text'] = 'Привет! Назови своё имя!'
         user = User(user_id)
@@ -333,8 +345,12 @@ def question(req, res, text, variants, results):
 
 def init_buttons(req, res, buttons=None):
     """Инициализация кнопок"""
+    if not sessionStorage:
+        return
     user_id = req['session']['user_id']
     if not buttons:
+        if not sessionStorage[user_id].get("buttons"):
+            return
         buttons = sessionStorage[user_id]["buttons"].copy()
     res['response']['buttons'] = [
         {
