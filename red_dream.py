@@ -268,7 +268,7 @@ def end(req, res):
     records = {sessionStorage[user_id]['first_name']: [
         user.fail, sessionStorage[user_id]["current_question"]]}
     records = dict(list(records.items()) + list(past_records.items()))
-    with open("/home/PenzaStreetNetworks/mysite/records.json", "a",
+    with open("/home/PenzaStreetNetworks/mysite/records.json", "w",
               encoding="utf8") as file:
         file.write(json.dumps(records))
     if answer == "Создатели":
