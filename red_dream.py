@@ -3,8 +3,6 @@
 """
 from flask import Flask, request
 import logging
-import requests
-import math
 import random
 import json
 
@@ -43,7 +41,7 @@ class User:
     def change_params(self, params):
         """Изменяет параметры страны"""
         self.government += params["government"]
-        self.economy += params["military"]
+        self.economy += params["economy"]
         self.military += params["military"]
         self.control += params["control"]
         self.communism += params["communism"]
@@ -104,7 +102,8 @@ app = Flask(__name__)
 
 logging.basicConfig(level=logging.INFO)
 sessionStorage = {}
-with open("/home/medal/mysite/quest.json", "r", encoding="utf8") as file:
+with open("/home/PenzaStreetNetworks/mysite/quest.json", "r",
+          encoding="utf8") as file:
     quest = json.loads(file.read())
 
 
@@ -142,13 +141,18 @@ def start(req, res):
         init_buttons(req, res)
         return
 
-    if answer == "Что ты умеешь?":
-        res['response']['text'] = quest["help"]
+    if answer == "Что ты умеешь":
+        res['response']['text'] = "Я умею задавать вопросы и обрабатывать " \
+                                  "твои ответы"
         init_buttons(req, res)
         return
 
     if req['session']['new']:
-        res['response']['text'] = 'Привет! Назови своё имя!'
+        res['response']['text'] = 'Привет! Вы включили навык-игру ' \
+                                  '"Красная мечта". ' \
+                                  'Я буду задавать вопросы по управлению ' \
+                                  'страной, а ты будешь выбирать ответ ' \
+                                  'из предложенных вариантов. Назови своё имя!'
         user = User(user_id)
         user.questions, user.jumps_questions = make_questions_list(
             User.quest_data)
@@ -204,8 +208,11 @@ def handle_dialog(req, res):
         res['response']['text'] = quest["help"]
         init_buttons(req, res)
         return
+    elif answer == "Рекорды":
+        res['response']['text'] = get_records()
+        return
     if not answer in sessionStorage[user_id]["buttons"]:
-        res['response']['text'] = "Каво?"
+        res['response']['text'] = "Что-что?"
         init_buttons(req, res)
         return
     try:
@@ -246,7 +253,7 @@ def handle_dialog(req, res):
         return
     except IndexError:
         sessionStorage[user_id]['end_quest'] = True
-
+        res['response']['text'] = quest['endings']['time limit']
         init_buttons(req, res, ["Завершить"])
         return
 
@@ -255,24 +262,31 @@ def end(req, res):
     user_id = req['session']['user_id']
     user = sessionStorage[user_id]["user"]
     answer = req['request']['original_utterance']
-    with open("/home/medal/mysite/records.json", "r", encoding="utf8") as file:
+    with open("/home/PenzaStreetNetworks/mysite/records.json", "r",
+              encoding="utf8") as file:
         past_records = dict(json.loads(file.read()))
-    records = {sessionStorage[user_id]['first_name']: user.fail}
+    records = {sessionStorage[user_id]['first_name']: [
+        user.fail, sessionStorage[user_id]["current_question"]]}
     records = dict(list(records.items()) + list(past_records.items()))
-    with open("/home/medal/mysite/records.json", "w",
+    with open("/home/PenzaStreetNetworks/mysite/records.json", "w",
               encoding="utf8") as file:
         file.write(json.dumps(records))
     if answer == "Создатели":
         res['response']['text'] = quest["credits"]
     elif answer == "Рекорды":
-        res['response']['text'] = "" # Records
+        res['response']['text'] = get_records()
     elif answer == "Сыграть еще раз":
         sessionStorage[user_id]['end_quest'] = False
         req['session']['new'] = True
         return start(req, res)
+    elif answer == "Завершить":
+        res["response"]["text"] = f"Спасибо, что поиграл со мной " \
+            f"{sessionStorage[user_id]['first_name']}! Пока."
+        res["end_session"] = True
     else:
         res['response']['text'] = "Вы прошли квест."
-    init_buttons(req, res, ["Сыграть еще раз", "Рекорды", "Создатели"])
+    init_buttons(req, res, ["Сыграть еще раз", "Рекорды", "Создатели",
+                            "Завершить"])
     return
 
 
@@ -407,6 +421,22 @@ def string_effects(effects, delta=False):
                f"Военная мощь: {signs[2]}{military}\n" \
                f"Контроль над народом: {signs[3]}{control}\n" \
                f"Коммунизм: {signs[4]}{communism}"
+
+
+def get_records():
+    with open("/home/PenzaStreetNetworks/mysite/records.json", "r",
+              encoding="utf8") as file:
+        records = json.loads(file.read())
+    winners = list(filter(lambda user: user[1][0] == "communism max",
+                          records.items()))[:10]
+    winners_number = 10
+    header = "\t Имя игрока \t Кол-во ходов"
+    winners = list(map(lambda user: f"\t{user[0]} \t\t\t {user[1][1]}",
+                       winners))
+    if len(winners) < winners_number:
+        winners += ["\t - \t\t\t -"] * (winners_number - len(winners))
+    result = "\n".join([header] + winners)
+    return result
 
 
 if __name__ == '__main__':
