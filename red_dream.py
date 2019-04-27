@@ -253,7 +253,7 @@ def handle_dialog(req, res):
         return
     except IndexError:
         sessionStorage[user_id]['end_quest'] = True
-
+        res['response']['text'] = quest['endings']['time limit']
         init_buttons(req, res, ["Завершить"])
         return
 
