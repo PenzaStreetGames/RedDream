@@ -124,6 +124,7 @@ def main():
     user_id = request.json['session']['user_id']
 
     start(request.json, response)
+    response["response"]["tts"] = response["response"]["text"]
 
     logging.info('Response: %r', request.json)
 
