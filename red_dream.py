@@ -124,7 +124,6 @@ def main():
     user_id = request.json['session']['user_id']
 
     start(request.json, response)
-    response["response"]["tts"] = response["response"]["text"]
 
     logging.info('Response: %r', request.json)
 
@@ -135,7 +134,7 @@ def start(req, res):
     """Начало разговора с пользователем"""
     user_id = req['session']['user_id']
 
-    answer = req['request']['original_utterance']
+    answer = req['request']['original_utterance'].strip(".").capitalize()
 
     if answer == "Помощь":
         res['response']['text'] = quest["help"]
@@ -143,9 +142,15 @@ def start(req, res):
         return
 
     if answer == "Что ты умеешь":
-        res['response']['text'] = "Я умею задавать вопросы и обрабатывать " \
-                                  "твои ответы"
+        res['response']['text'] = "Я умею играть с тобой в Красную Мечту. "\
+                                  "В ней я задаю тебе исторические вопросы, "\
+                                  "а ты выбираешь варианты ответов, как " \
+                                  "настоящий правитель страны."
         init_buttons(req, res)
+        return
+
+    if answer == "Создатели":
+        res['response']['text'] = quest["credits"]
         return
 
     if req['session']['new']:
@@ -164,6 +169,16 @@ def start(req, res):
             "current_question": 0,
             "echo_effect": False
         }
+        res['response']['buttons'] = [
+            {
+                "title": "Помощь",
+                "hide": False
+            },
+            {
+                "title": "Что ты умеешь",
+                "hide": False
+            }
+        ]
         return
 
     if sessionStorage[user_id]['first_name'] is None:
@@ -197,23 +212,24 @@ def handle_dialog(req, res):
     """Обработка диалога"""
     user_id = req['session']['user_id']
     user = sessionStorage[user_id]["user"]
-    answer = req['request']['original_utterance']
+    answer = req['request']['original_utterance'].strip(".").capitalize()
     if sessionStorage[user_id].get('end_quest') == True:
         return end(req, res)
 
-    if answer == "Статистика":
+    if answer in ["Статистика", "статистика"]:
         res['response']['text'] = str(user)
         init_buttons(req, res)
         return
-    if answer == "Помощь":
+    if answer in ["Помощь", "помощь"]:
         res['response']['text'] = quest["help"]
         init_buttons(req, res)
         return
-    elif answer == "Рекорды":
+    elif answer in ["Рекорды", "рекорды"]:
         res['response']['text'] = get_records()
         return
+    logging.warning([sessionStorage[user_id]["buttons"], answer])
     if not answer in sessionStorage[user_id]["buttons"]:
-        res['response']['text'] = "Что-что?"
+        res['response']['text'] = "Что? Я не расслышала."
         init_buttons(req, res)
         return
     try:
@@ -227,9 +243,10 @@ def handle_dialog(req, res):
         next_question = Question(user.questions[current])
         if current and echo_effect:
             past_question = Question(user.questions[current - 1])
-            analyze_answer(req, res, past_question.get_cause_effect(answer),
+            effect = past_question.get_cause_effect(answer)
+            analyze_answer(req, res, effect,
                            past_question.get_effects_on_answer(answer))
-
+            res["response"]["tts"] = effect
             init_buttons(req, res, ["Дальше", "Статистика", "Помощь"])
             sessionStorage[user_id]['echo_effect'] = False
             return
@@ -242,8 +259,10 @@ def handle_dialog(req, res):
             res['response']['card']['image_id'] = quest["jumps"][
                 user.jumps_questions[current]]["image"]
             res['response']['text'] = user.jumps_questions[current].title()
+            res["response"]["tts"] = res["response"].get("tts", "") + quest[
+                "jumps"][user.jumps_questions[current]]["text"]
 
-            init_buttons(req, res, ["Приступаем!"])
+            init_buttons(req, res, ["Приступаем"])
             del user.jumps_questions[current]
             return
         res['response']['text'] = str(next_question)
@@ -262,7 +281,7 @@ def handle_dialog(req, res):
 def end(req, res):
     user_id = req['session']['user_id']
     user = sessionStorage[user_id]["user"]
-    answer = req['request']['original_utterance']
+    answer = req['request']['original_utterance'].strip(".").capitalize()
     with open("/home/PenzaStreetNetworks/mysite/records.json", "r",
               encoding="utf8") as file:
         past_records = dict(json.loads(file.read()))
@@ -282,7 +301,7 @@ def end(req, res):
         return start(req, res)
     elif answer == "Завершить":
         res["response"]["text"] = f"Спасибо, что поиграл со мной " \
-            f"{sessionStorage[user_id]['first_name']}! Пока."
+            f"{sessionStorage[user_id]['first_name'].title()}! Пока."
         res["end_session"] = True
     else:
         res['response']['text'] = "Вы прошли квест."
@@ -329,11 +348,13 @@ def is_liveable(req, res, params):
         if params[param] >= quest["value_max"]:
             echo += "\n\n" + User.quest_data["endings"][f"{param} max"]
             res['response']["text"] = echo
+            res["response"]["tts"] = res["response"].get("tts", "") + "\n" + echo
             user.fail = f"{param} max"
             return False
         elif params[param] <= quest["value_min"]:
             echo += "\n\n" + User.quest_data["endings"][f"{param} min"]
             res['response']["text"] = echo
+            res["response"]["tts"] = res["response"].get("tts", "") + "\n" + echo
             user.fail = f"{param} min"
             return False
         elif params[param] >= quest["value_lot"]:
@@ -352,7 +373,7 @@ def question(req, res, text, variants, results):
     # results - список ответов в том же порядке вопросов
     res['response']['text'] = text
     init_buttons(req, res, variants)
-    answer = req['request']['original_utterance']
+    answer = req['request']['original_utterance'].strip(".").capitalize()
     for i, result in enumerate(variants):
         if answer == result:
             res['response']['text'] = results[i]
@@ -361,10 +382,30 @@ def question(req, res, text, variants, results):
 def init_buttons(req, res, buttons=None):
     """Инициализация кнопок"""
     if not sessionStorage:
+        res['response']['buttons'] = [
+            {
+                "title": "Помощь",
+                "hide": False
+            },
+            {
+                "title": "Что ты умеешь",
+                "hide": False
+            }
+        ]
         return
     user_id = req['session']['user_id']
     if not buttons:
         if not sessionStorage[user_id].get("buttons"):
+            res['response']['buttons'] = [
+                {
+                    "title": "Помощь",
+                    "hide": False
+                },
+                {
+                    "title": "Что ты умеешь",
+                    "hide": False
+                }
+            ]
             return
         buttons = sessionStorage[user_id]["buttons"].copy()
     res['response']['buttons'] = [
@@ -373,6 +414,15 @@ def init_buttons(req, res, buttons=None):
             'hide': True
         } for button in buttons
 
+    ] + [
+        {
+            "title": "Помощь",
+            "hide": False
+        },
+        {
+            "title": "Что ты умеешь",
+            "hide": False
+        }
     ]
     sessionStorage[user_id]["buttons"] = buttons.copy()
 
@@ -429,7 +479,8 @@ def get_records():
               encoding="utf8") as file:
         records = json.loads(file.read())
     winners = list(filter(lambda user: user[1][0] == "communism max",
-                          records.items()))[:10]
+                          records.items()))
+    winners = list(sorted(winners, key=lambda user: user[1][1]))[:10]
     winners_number = 10
     header = "\t Имя игрока \t Кол-во ходов"
     winners = list(map(lambda user: f"\t{user[0]} \t\t\t {user[1][1]}",
