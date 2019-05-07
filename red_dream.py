@@ -3,6 +3,8 @@ import logging
 import random
 import json
 
+site = "PenzaStreetNetworks"
+
 
 class User:
     """Пользователь навыка"""
@@ -104,7 +106,7 @@ app = Flask(__name__)
 
 logging.basicConfig(level=logging.INFO)
 sessionStorage = {}
-with open("/home/medal/mysite/quest.json", "r",
+with open(f"/home/{site}/mysite/quest.json", "r",
           encoding="utf8") as file:
     quest = json.loads(file.read())
 hint_button_text = "Подсказка"
@@ -291,13 +293,13 @@ def end(req, res):
     user_id = req['session']['user_id']
     user = sessionStorage[user_id]["user"]
     answer = req['request']['original_utterance'].strip(".").capitalize()
-    with open("/home/medal/mysite/records.json", "r",
+    with open(f"/home/{site}/mysite/records.json", "r",
               encoding="utf8") as file:
         past_records = dict(json.loads(file.read()))
     records = {sessionStorage[user_id]['first_name']: [
         user.fail, sessionStorage[user_id]["current_question"]]}
     records = dict(list(records.items()) + list(past_records.items()))
-    with open("/home/medal/mysite/records.json", "w",
+    with open(f"/home/{site}/mysite/records.json", "w",
               encoding="utf8") as file:
         file.write(json.dumps(records))
     if answer == "Создатели":
@@ -486,7 +488,7 @@ def string_effects(effects, delta=False):
 
 
 def get_records():
-    with open("/home/medal/mysite/records.json", "r",
+    with open(f"/home/{site}/mysite/records.json", "r",
               encoding="utf8") as file:
         records = json.loads(file.read())
     winners = list(filter(lambda user: user[1][0] == "communism max",
