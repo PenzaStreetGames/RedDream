@@ -84,6 +84,11 @@ class Question:
                     answer["effects"][effect] *= k
                 return answer["effects"]
 
+    def get_real_answer(self):
+        for el in self.answers:
+            if not el["alternative"]:
+                return el["text"]
+
     def get_cause_effect(self, data):
         """Вывод текста последствий"""
         for answer in self.answers:
@@ -99,9 +104,11 @@ app = Flask(__name__)
 
 logging.basicConfig(level=logging.INFO)
 sessionStorage = {}
-with open("/home/PenzaStreetNetworks/mysite/quest.json", "r",
+with open("/home/medal/mysite/quest.json", "r",
           encoding="utf8") as file:
     quest = json.loads(file.read())
+hint_button_text = "Подсказка"
+
 
 
 @app.route('/red_dream', methods=['POST'])
@@ -241,6 +248,10 @@ def handle_dialog(req, res):
         if current and echo_effect:
             past_question = Question(user.questions[current - 1])
             effect = past_question.get_cause_effect(answer)
+            if answer.lower() == hint_button_text.lower():
+                res['response']['text'] = quest["hint_text"].format(past_question.get_real_answer())
+                init_buttons(req, res)
+                return
             analyze_answer(req, res, effect,
                            past_question.get_effects_on_answer(answer))
             res["response"]["tts"] = effect
@@ -263,7 +274,8 @@ def handle_dialog(req, res):
             del user.jumps_questions[current]
             return
         res['response']['text'] = str(next_question)
-        init_buttons(req, res, next_question.get_answers_titles())
+
+        init_buttons(req, res, next_question.get_answers_titles() + [hint_button_text])
         sessionStorage[user_id]['current_question'] += 1
         sessionStorage[user_id]['echo_effect'] = True
 
@@ -279,13 +291,13 @@ def end(req, res):
     user_id = req['session']['user_id']
     user = sessionStorage[user_id]["user"]
     answer = req['request']['original_utterance'].strip(".").capitalize()
-    with open("/home/PenzaStreetNetworks/mysite/records.json", "r",
+    with open("/home/medal/mysite/records.json", "r",
               encoding="utf8") as file:
         past_records = dict(json.loads(file.read()))
     records = {sessionStorage[user_id]['first_name']: [
         user.fail, sessionStorage[user_id]["current_question"]]}
     records = dict(list(records.items()) + list(past_records.items()))
-    with open("/home/PenzaStreetNetworks/mysite/records.json", "w",
+    with open("/home/medal/mysite/records.json", "w",
               encoding="utf8") as file:
         file.write(json.dumps(records))
     if answer == "Создатели":
@@ -369,10 +381,12 @@ def question(req, res, text, variants, results):
     """ Показ вопроса, вариантов ответа и вывод последствий. """
     # results - список ответов в том же порядке вопросов
     res['response']['text'] = text
-    init_buttons(req, res, variants)
+    init_buttons(req, res, variants + [hint_button_text])
     answer = req['request']['original_utterance'].strip(".").capitalize()
     for i, result in enumerate(variants):
-        if answer == result:
+        if answer == hint_button_text:
+            res['response']['text'] = quest["hint"]
+        elif answer == result:
             res['response']['text'] = results[i]
 
 
@@ -472,7 +486,7 @@ def string_effects(effects, delta=False):
 
 
 def get_records():
-    with open("/home/PenzaStreetNetworks/mysite/records.json", "r",
+    with open("/home/medal/mysite/records.json", "r",
               encoding="utf8") as file:
         records = json.loads(file.read())
     winners = list(filter(lambda user: user[1][0] == "communism max",
