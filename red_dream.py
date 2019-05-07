@@ -1,6 +1,3 @@
-"""
--> medal.pythonanywhere.com <-
-"""
 from flask import Flask, request
 import logging
 import random
