@@ -13,7 +13,6 @@ class User:
     def __init__(self, id):
         self.set_base()
 
-
     def set_base(self):
         self.move = 0
         self.id = id
@@ -90,6 +89,7 @@ class Question:
         for el in self.answers:
             if not el["alternative"]:
                 return el["text"]
+        return False
 
     def get_cause_effect(self, data):
         """Вывод текста последствий"""
@@ -251,7 +251,12 @@ def handle_dialog(req, res):
             past_question = Question(user.questions[current - 1])
             effect = past_question.get_cause_effect(answer)
             if answer.lower() == hint_button_text.lower():
-                res['response']['text'] = quest["hint_text"].format(past_question.get_real_answer())
+                real_answer = past_question.get_real_answer()
+                if real_answer:
+                    res['response']['text'] = quest["hint_text"].format(
+                        real_answer)
+                else:
+                    res["response"]["text"] = quest["alternative_hint"]
                 init_buttons(req, res)
                 return
             analyze_answer(req, res, effect,
