@@ -155,9 +155,29 @@ def is_all_photos(data):
     return "Все изображения на месте"
 
 
+def analyse_records(records):
+    """Анализ файла рекордов"""
+    endings = {}
+    for record in records.items():
+        ending = record[1][0]
+        name = record[0]
+        number = record[1][1]
+        endings[ending] = endings.get(ending, []) + [[name, number]]
+    result = "Анализ рекордов: \n"
+    for ending in endings.items():
+        users = list(sorted(ending[1], key=lambda user: user[1]))
+        users = list(map(lambda user: f"{user[0]} {str(user[1])}", users))
+        users = "\n".join(users)
+        result += f"С концовкой {ending[0]} игру прошли {len(ending[1])}" \
+            f"игроков:\n{users} \n"
+    return result
+
+
 if __name__ == '__main__':
     with open("quest.json", "r", encoding="utf8") as file:
         quest = json.loads(file.read())
+    with open("records.json", "r", encoding="utf8") as file:
+        records = json.loads(file.read())
     try:
         print(questions_number(quest))
         print(questions_category(quest))
@@ -174,5 +194,6 @@ if __name__ == '__main__':
         print(longest_jump_text(quest))
         print(is_all_photos(quest))
         print("Все тесты пройдены успешно")
+        print(analyse_records(records))
     except TestError as error:
         print(error)
