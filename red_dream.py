@@ -80,7 +80,7 @@ class Question:
         """Последствия ответа"""
         k = quest["k"]
         for answer in self.answers:
-            if answer["text"] == data:
+            if transform_answer(answer["text"]) == data:
                 for effect in answer["effects"]:
                     answer["effects"][effect] *= k
                 return answer["effects"]
@@ -94,8 +94,11 @@ class Question:
     def get_cause_effect(self, data):
         """Вывод текста последствий"""
         for answer in self.answers:
-            if answer["text"] == data:
+            if transform_answer(answer["text"]) == data:
                 return answer["cause"]
+
+    def get_leader(self):
+        return quest["leaders"][self.period]
 
     def __str__(self):
         """Возвращает текст вопроса"""
@@ -171,7 +174,10 @@ def start(req, res):
                                   '"Красная мечта". ' \
                                   'Я буду задавать вопросы по управлению ' \
                                   'страной, а ты будешь выбирать ответ ' \
-                                  'из предложенных вариантов. Назови своё имя!'
+                                  'из предложенных вариантов. Можешь сказать ' \
+                                  '\"подсказка\" и я тебе могу сказать ' \
+                                  'решение исторического лидера. ' \
+                                  'Назови своё имя!'
         user = User(user_id)
         user.questions, user.jumps_questions = make_questions_list(
             User.quest_data)
@@ -259,8 +265,9 @@ def handle_dialog(req, res):
         if current and echo_effect:
             past_question = Question(user.questions[current - 1])
             effect = past_question.get_cause_effect(answer)
+            real_answer = past_question.get_real_answer()
+            leader = past_question.get_leader()
             if answer.lower() == hint_button_text.lower():
-                real_answer = past_question.get_real_answer()
                 if real_answer:
                     res['response']['text'] = quest["hint_text"].format(
                         real_answer)
@@ -268,10 +275,17 @@ def handle_dialog(req, res):
                     res["response"]["text"] = quest["alternative_hint"]
                 init_buttons(req, res)
                 return
+            if transform_answer(real_answer) == answer:
+                addition = random.choice(quest["history_right"]).format(leader)
+            elif real_answer is not None:
+                addition = random.choice(quest["history_wrong"]).format(leader)
+            else:
+                addition = ""
+            effect = addition + effect
             analyze_answer(req, res, effect,
                            past_question.get_effects_on_answer(answer))
             res["response"]["tts"] = effect
-            init_buttons(req, res, ["Дальше", "Статистика", "Помощь"])
+            init_buttons(req, res, ["Дальше", "Статистика"])
             sessionStorage[user_id]['echo_effect'] = False
             return
         if current in list(user.jumps_questions):
