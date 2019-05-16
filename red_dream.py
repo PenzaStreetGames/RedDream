@@ -102,6 +102,11 @@ class Question:
         return self.text
 
 
+def transform_answer(string):
+    """Подгонка ответа пользователя под один формат"""
+    return string.strip(".").lower().capitalize()
+
+
 app = Flask(__name__)
 
 logging.basicConfig(level=logging.INFO)
@@ -140,7 +145,7 @@ def start(req, res):
     """Начало разговора с пользователем"""
     user_id = req['session']['user_id']
 
-    answer = req['request']['original_utterance'].strip(".").capitalize()
+    answer = transform_answer(req["request"]["original_utterance"])
 
     if answer == "Помощь":
         res['response']['text'] = quest["help"]
@@ -220,7 +225,7 @@ def handle_dialog(req, res):
     """Обработка диалога"""
     user_id = req['session']['user_id']
     user = sessionStorage[user_id]["user"]
-    answer = req['request']['original_utterance'].strip(".").capitalize()
+    answer = transform_answer(req["request"]["original_utterance"])
     if sessionStorage[user_id].get('end_quest') == True:
         return end(req, res)
 
@@ -236,7 +241,9 @@ def handle_dialog(req, res):
         res['response']['text'] = get_records()
         return
     logging.warning([sessionStorage[user_id]["buttons"], answer])
-    if not answer in sessionStorage[user_id]["buttons"]:
+    posible_answers = list(map(
+        transform_answer, sessionStorage[user_id]["buttons"]))
+    if not answer in posible_answers:
         res['response']['text'] = "Что? Я не расслышала."
         init_buttons(req, res)
         return
@@ -299,7 +306,7 @@ def handle_dialog(req, res):
 def end(req, res):
     user_id = req['session']['user_id']
     user = sessionStorage[user_id]["user"]
-    answer = req['request']['original_utterance'].strip(".").capitalize()
+    answer = transform_answer(req["request"]["original_utterance"])
     with open(f"/home/{site}/mysite/records.json", "r",
               encoding="utf8") as file:
         past_records = dict(json.loads(file.read()))
@@ -391,7 +398,7 @@ def question(req, res, text, variants, results):
     # results - список ответов в том же порядке вопросов
     res['response']['text'] = text
     init_buttons(req, res, variants + [hint_button_text])
-    answer = req['request']['original_utterance'].strip(".").capitalize()
+    answer = transform_answer(req["request"]["original_utterance"])
     for i, result in enumerate(variants):
         if answer == hint_button_text:
             res['response']['text'] = quest["hint"]
