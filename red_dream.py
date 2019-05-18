@@ -49,9 +49,14 @@ class User:
                                     self.military, self.control])
                               / 4 - 50) * step
         self.communism += delta["communism"]
-        logging.error((sum([self.government, self.economy, self.military,
-                            self.control]) / 4 - 50))
         return delta
+
+    def print_state(self):
+        name = sessionStorage[self.id]["first_name"]
+        current = sessionStorage[self.id]["current_question"]
+        state = f"{self.government}, {self.economy}, {self.military}, " \
+            f"{self.control}, ({self.communism})"
+        return f"{name}: {state} [{current}]"
 
     def __str__(self):
         """Возвращает параметры страны в виде строки"""
@@ -231,6 +236,7 @@ def handle_dialog(req, res):
     """Обработка диалога"""
     user_id = req['session']['user_id']
     user = sessionStorage[user_id]["user"]
+    logging.info(user.print_state())
     answer = transform_answer(req["request"]["original_utterance"])
     if sessionStorage[user_id].get('end_quest') == True:
         return end(req, res)
@@ -246,7 +252,6 @@ def handle_dialog(req, res):
     elif answer in ["Рекорды", "рекорды"]:
         res['response']['text'] = get_records()
         return
-    logging.warning([sessionStorage[user_id]["buttons"], answer])
     posible_answers = list(map(
         transform_answer, sessionStorage[user_id]["buttons"]))
     if not answer in posible_answers:
@@ -275,9 +280,11 @@ def handle_dialog(req, res):
                     res["response"]["text"] = quest["alternative_hint"]
                 init_buttons(req, res)
                 return
-            if transform_answer(real_answer) == answer:
+            if real_answer is False:
+                addition = ""
+            elif transform_answer(real_answer) == answer:
                 addition = random.choice(quest["history_right"]).format(leader)
-            elif real_answer is not None:
+            elif real_answer is not False:
                 addition = random.choice(quest["history_wrong"]).format(leader)
             else:
                 addition = ""
@@ -485,7 +492,6 @@ def make_questions_list(data):
     for item, question in enumerate(questions_list):
         if item and question["period"] != questions_list[item - 1]["period"]:
             jumps_questions[item] = question["period"]
-    logging.error(jumps_questions)
 
     return questions_list, jumps_questions
 
