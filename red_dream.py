@@ -11,9 +11,9 @@ class User:
     quest_data = {}
 
     def __init__(self, id):
-        self.set_base()
+        self.set_base(id)
 
-    def set_base(self):
+    def set_base(self, id):
         self.move = 0
         self.id = id
         self.period = ""
@@ -43,7 +43,7 @@ class User:
         self.military += params["military"]
         self.control += params["control"]
         self.communism += params["communism"]
-        step = 0.3
+        step = 0.35
         delta = params.copy()
         delta["communism"] = (sum([self.government, self.economy,
                                     self.military, self.control])
@@ -54,8 +54,9 @@ class User:
     def print_state(self):
         name = sessionStorage[self.id]["first_name"]
         current = sessionStorage[self.id]["current_question"]
-        state = f"{self.government}, {self.economy}, {self.military}, " \
-            f"{self.control}, ({self.communism})"
+        state = f"{round(self.government, 2)}, {round(self.economy, 2)}, " \
+            f"{round(self.military, 2)}, " \
+            f"{round(self.control, 2)}, ({round(self.communism, 2)})"
         return f"{name}: {state} [{current}]"
 
     def __str__(self):
@@ -129,7 +130,7 @@ hint_button_text = "Подсказка"
 @app.route('/red_dream', methods=['POST'])
 def main():
     """Каркас диалога с пользователем и Алисой"""
-    logging.info('Request: %r', request.json)
+    # logging.info('Request: %r', request.json)
 
     User.quest_data = quest
 
@@ -144,7 +145,7 @@ def main():
 
     start(request.json, response)
 
-    logging.info('Response: %r', request.json)
+    # logging.info('Response: %r', request.json)
 
     return json.dumps(response)
 
@@ -514,7 +515,7 @@ def string_effects(effects, delta=False):
             "+" if control >= 0 else "",
             "+" if communism >= 0 else ""
         ]
-        return f"\n Политическа мощь: {signs[0]}{government}\n" \
+        return f"\n Политическая мощь: {signs[0]}{government}\n" \
                f"Эконмическая мощь: {signs[1]}{economy}\n" \
                f"Военная мощь: {signs[2]}{military}\n" \
                f"Контроль над народом: {signs[3]}{control}\n" \
