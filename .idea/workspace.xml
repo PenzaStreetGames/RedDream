@@ -2,10 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="a2be8793-bbd8-4782-bedc-28797b720c66" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/red_dream.py" beforeDir="false" afterPath="$PROJECT_DIR$/flask_app.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/flask_app.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/flask_app.py" beforeDir="false" afterPath="$PROJECT_DIR$/red_dream.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -19,10 +17,10 @@
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
       <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/flask_app.py">
+        <entry file="file://$PROJECT_DIR$/red_dream.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="320">
-              <caret line="310" column="99" selection-start-line="310" selection-start-column="85" selection-end-line="310" selection-end-column="99" />
+            <state relative-caret-position="391">
+              <caret line="306" column="38" selection-start-line="306" selection-start-column="38" selection-end-line="306" selection-end-column="38" />
               <folding>
                 <element signature="e#0#32#0" expanded="true" />
               </folding>
@@ -185,7 +183,7 @@
     </configuration>
     <configuration name="RedDream" type="Python.FlaskServer" factoryName="Flask server">
       <module name="RedDream" />
-      <option name="target" value="$PROJECT_DIR$/flask_app.py" />
+      <option name="target" value="$PROJECT_DIR$/red_dream.py" />
       <option name="targetType" value="PATH" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -215,7 +213,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1555512328709</updated>
-      <workItem from="1559329796365" duration="4242000" />
+      <workItem from="1559329796365" duration="4614000" />
     </task>
     <task id="LOCAL-00001" summary="Создаю юзера">
       <created>1555515563370</created>
@@ -238,15 +236,21 @@
       <option name="project" value="LOCAL" />
       <updated>1556212142825</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="Убрана кнопка &quot;Дальше&quot;, игра не спрашивает согласия, вопрос повторяется в статистике.">
+      <created>1559334367468</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1559334367469</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="6327000" />
+    <option name="totallyTimeSpent" value="6699000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1382" height="744" extended-state="6" />
-    <editor active="true" />
     <layout>
       <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.16490166" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
@@ -279,7 +283,8 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Создаю юзера" />
     <MESSAGE value="Подправил json Паши по его просьбе, создал генератор вопросов" />
-    <option name="LAST_COMMIT_MESSAGE" value="Подправил json Паши по его просьбе, создал генератор вопросов" />
+    <MESSAGE value="Убрана кнопка &quot;Дальше&quot;, игра не спрашивает согласия, вопрос повторяется в статистике." />
+    <option name="LAST_COMMIT_MESSAGE" value="Убрана кнопка &quot;Дальше&quot;, игра не спрашивает согласия, вопрос повторяется в статистике." />
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/.idea/workspace.xml">
@@ -299,10 +304,10 @@
         <state relative-caret-position="-1013" />
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/flask_app.py">
+    <entry file="file://$PROJECT_DIR$/red_dream.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="320">
-          <caret line="310" column="99" selection-start-line="310" selection-start-column="85" selection-end-line="310" selection-end-column="99" />
+        <state relative-caret-position="391">
+          <caret line="306" column="38" selection-start-line="306" selection-start-column="38" selection-end-line="306" selection-end-column="38" />
           <folding>
             <element signature="e#0#32#0" expanded="true" />
           </folding>
