@@ -1,25 +1,177 @@
 {
+  "\u043d\u0438\u043a\u043e\u043b\u0430\u0439": [
+    "questions limit",
+    24
+  ],
+  "\u043c\u0430\u0441\u044f\u043d\u044f": [
+    "communism max",
+    19
+  ],
+  "\u0438\u043e\u0441\u0438\u0444": [
+    "communism max",
+    22
+  ],
+  "\u0432\u0430\u043d\u044f": [
+    "questions limit",
+    24
+  ],
+  "\u0430\u043d\u0434\u0440\u0435\u0439": [
+    "questions limit",
+    24
+  ],
+  "\u043d\u0430\u0442\u0430\u043b\u044c\u044f": [
+    "questions limit",
+    24
+  ],
   "\u0430\u0440\u0441\u0435\u043d\u0438\u0439": [
     "communism min",
     9
   ],
-  "\u0432\u043b\u0430\u0434\u0438\u043c\u0438\u0440": [
-    "communism min",
-    6
+  "\u0432\u0438\u043a\u0430": [
+    "questions limit",
+    24
   ],
-  "\u043a\u0440\u0438\u0441\u0442\u0438\u043d\u0430": [
-    "communism min",
-    6
-  ],
-  "\u0437\u0438\u043d\u043e\u0432\u0438\u0439": [
+  "\u0434\u0430\u043d\u0438\u043b": [
     "communism min",
     8
+  ],
+  "\u0432\u0438\u043a\u0442\u043e\u0440": [
+    "communism min",
+    6
+  ],
+  "\u0430\u043b\u044f": [
+    "questions limit",
+    24
+  ],
+  "\u0430\u043b\u0435\u043a\u0441\u0435\u0439": [
+    "communism min",
+    3
   ],
   "\u043b\u0438\u0437\u0430": [
     "questions limit",
     24
   ],
-  "\u0434\u0430\u043d\u0438\u043b": [
+  "\u043e\u043b\u044c\u0433\u0430": [
+    "questions limit",
+    24
+  ],
+  "\u0430\u043b\u0435": [
+    "communism max",
+    20
+  ],
+  "\u0430\u043d\u0442\u043e\u043d": [
+    "questions limit",
+    24
+  ],
+  "\u0433\u0440\u0438\u0448\u0430": [
+    "questions limit",
+    24
+  ],
+  "\u0430\u043d\u044f": [
+    "questions limit",
+    24
+  ],
+  "\u043e\u043b\u044f": [
+    "questions limit",
+    24
+  ],
+  "\u0438\u0440\u0438\u0442\u0430": [
+    "economy max",
+    18
+  ],
+  "\u0438\u043b\u044c\u044f": [
+    "communism min",
+    5
+  ],
+  "\u043f\u0435\u0442\u044f": [
+    "communism max",
+    19
+  ],
+  "\u0434\u0435\u043d\u0438\u0441": [
+    "questions limit",
+    24
+  ],
+  "\u043c\u0438\u0445\u0430\u0438\u043b": [
+    "questions limit",
+    24
+  ],
+  "\u043e\u043a\u0441\u0430\u043d\u043e\u0447\u043a\u0430": [
+    "communism max",
+    20
+  ],
+  "\u0433\u0435\u0440\u0430\u043b\u044c\u0434": [
+    "communism min",
+    5
+  ],
+  "\u0430\u043b\u0435\u043a\u0441\u0430\u043d\u0434\u0440": [
+    "government max",
+    18
+  ],
+  "\u043f\u0435\u0442\u0440": [
+    "questions limit",
+    24
+  ],
+  "\u0432\u043b\u0430\u0434\u0438\u043c\u0438\u0440": [
+    "communism min",
+    6
+  ],
+  "\u043c\u0430\u043a\u0441\u0438\u043c": [
+    "communism min",
+    8
+  ],
+  "\u0441\u0435\u0440\u0433\u0435\u0439": [
+    "communism min",
+    9
+  ],
+  "\u0431\u043e\u0433\u0434\u0430\u043d": [
+    "communism max",
+    23
+  ],
+  "\u0441\u0430\u0448\u0430": [
+    "communism min",
+    10
+  ],
+  "\u043d\u0438\u043a\u0438\u0442\u0430": [
+    "control min",
+    22
+  ],
+  "\u0444\u0435\u0434\u044f": [
+    "questions limit",
+    24
+  ],
+  "\u043f\u0430\u0448\u0430": [
+    "communism max",
+    24
+  ],
+  "\u0435\u0432\u0433\u0435\u043d": [
+    "government max",
+    15
+  ],
+  "\u043a\u0440\u0438\u0441\u0442\u0438\u043d\u0430": [
+    "communism min",
+    6
+  ],
+  "\u043d\u0438\u043a\u0430\u043d\u043e\u0440": [
+    "communism min",
+    6
+  ],
+  "\u043c\u0430\u0448\u0430": [
+    "communism min",
+    5
+  ],
+  "\u0438\u0433\u043e\u0440\u044c": [
+    "communism min",
+    9
+  ],
+  "\u043b\u0435\u0432": [
+    "questions limit",
+    24
+  ],
+  "\u043c\u0438\u0445\u0430": [
+    "questions limit",
+    24
+  ],
+  "\u0437\u0438\u043d\u043e\u0432\u0438\u0439": [
     "communism min",
     8
   ],
@@ -39,10 +191,6 @@
     "communism min",
     9
   ],
-  "\u043f\u0430\u0448\u0430": [
-    "communism max",
-    24
-  ],
   "\u043a\u0438\u0440\u043a": [
     "questions limit",
     24
@@ -50,14 +198,6 @@
   "\u043a\u0438\u0440\u0438\u043b\u043b": [
     "communism min",
     8
-  ],
-  "\u0431\u043e\u0433\u0434\u0430\u043d": [
-    "communism max",
-    23
-  ],
-  "\u0438\u043e\u0441\u0438\u0444": [
-    "communism max",
-    22
   ],
   "\u043f\u0430\u0431\u043b\u043e": [
     "communism max",

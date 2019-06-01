@@ -168,7 +168,7 @@ def analyse_records(records):
         users = list(sorted(ending[1], key=lambda user: user[1]))
         users = list(map(lambda user: f"{user[0]} {str(user[1])}", users))
         users = "\n".join(users)
-        result += f"С концовкой {ending[0]} игру прошли {len(ending[1])}" \
+        result += f"С концовкой {ending[0]} игру прошли {len(ending[1])} " \
             f"игроков:\n{users} \n"
     return result
 
