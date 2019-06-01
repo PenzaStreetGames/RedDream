@@ -256,13 +256,17 @@ def handle_dialog(req, res):
 
         current = sessionStorage[user_id]['current_question']
 
+
         echo_effect = sessionStorage[user_id]['echo_effect']
         next_question = Question(user.questions[current])
-        if current and echo_effect:
+
+        if current and echo_effect and answer != "Завершить эпоху":
             past_question = Question(user.questions[current - 1])
             effect = past_question.get_cause_effect(answer)
             real_answer = past_question.get_real_answer()
             leader = past_question.get_leader()
+
+
             if answer.lower() == hint_button_text.lower():
                 if real_answer:
                     res['response']['text'] = quest["hint_text"].format(
@@ -271,39 +275,46 @@ def handle_dialog(req, res):
                     res["response"]["text"] = quest["alternative_hint"]
                 init_buttons(req, res)
                 return
-            if real_answer is False:
-                addition = ""
-            elif transform_answer(real_answer) == answer:
-                addition = random.choice(quest["history_right"]).format(leader)
-            elif real_answer is not False:
-                addition = random.choice(quest["history_wrong"]).format(leader)
-            else:
-                addition = ""
-            effect = addition + effect
-            analyze_answer(req, res, effect,
-                           past_question.get_effects_on_answer(answer))
-            res["response"]["tts"] = effect
+            if not answer in ["Начать эпоху", "Завершить эпоху"]:
+                if real_answer is False:
+                    addition = ""
+                elif transform_answer(real_answer) == answer:
+                    addition = random.choice(quest["history_right"]).format(leader)
+                elif real_answer is not False:
+                    addition = random.choice(quest["history_wrong"]).format(leader)
+                else:
+                    addition = ""
+                effect = addition + effect
+                analyze_answer(req, res, effect,
+                               past_question.get_effects_on_answer(answer))
+                res["response"]["tts"] = effect
+            if current in list(user.jumps_questions):
+                init_buttons(req, res, ["Завершить эпоху"])
 
-            res['response']['text'] += f"\n{'**' * 40}\n {str(next_question)}"
+                return
+            if current in user.jumps_questions:
+                res['response']['text'] = ""
+            logging.error("|".join(list(map(str, list(user.jumps_questions)))) + f" {current}")
+            res['response']['text'] += f"\n***\n {str(next_question)}"
 
             init_buttons(req, res, next_question.get_answers_titles() + [hint_button_text, "Статистика"])
             sessionStorage[user_id]['current_question'] += 1
             # init_buttons(req, res, ["Дальше", "Статистика"])
 
             return
-        if current in list(user.jumps_questions):
+        if answer == "Завершить эпоху" or current in user.jumps_questions:
             res['response']['card'] = {}
             res['response']['card']['type'] = 'BigImage'
             res['response']['card']['title'] = user.jumps_questions[
-                current].title() + "." + quest["jumps"][
-                user.jumps_questions[current]]["text"]
+                                                   current].title() + "." + quest["jumps"][
+                                                   user.jumps_questions[current]]["text"]
             res['response']['card']['image_id'] = quest["jumps"][
                 user.jumps_questions[current]]["image"]
             res['response']['text'] = user.jumps_questions[current].title()
             res["response"]["tts"] = res["response"].get("tts", "") + quest[
                 "jumps"][user.jumps_questions[current]]["text"]
 
-            init_buttons(req, res, ["Приступаем"])
+            init_buttons(req, res, ["Начать эпоху"])
             del user.jumps_questions[current]
             return
         res['response']['text'] = str(next_question)
