@@ -3,7 +3,7 @@ import logging
 import random
 import json
 
-site = "PenzaStreetNetworks"
+site = "medal"
 
 
 class User:
@@ -192,7 +192,8 @@ def start(req, res):
             'game_started': False,
             'user': user,
             "current_question": 0,
-            "echo_effect": False
+            "echo_effect": False,
+            "buttons": [],
         }
         res['response']['buttons'] = [
             {
@@ -212,25 +213,12 @@ def start(req, res):
             res['response']['text'] = 'Не расслышала имя. Повтори, пожалуйста!'
         else:
             sessionStorage[user_id]['first_name'] = first_name
-            res['response']['text'] = f'Приятно познакомиться, ' \
-                f'{first_name.title()}. Я Алиса. Сыграешь в игру ' \
-                f'"Красная Мечта"? В ней нужно отвечать на вопросы по ' \
-                f'управлению страной и победить, построив коммунизм. Сыграем?'
-            init_buttons(req, res, ["Да", "Нет"])
+            sessionStorage[user_id]['game_started'] = True
+            handle_dialog(req, res)
 
     else:
-        if not sessionStorage[user_id]['game_started']:
-            if 'да' in req['request']['nlu']['tokens']:
-                sessionStorage[user_id]['game_started'] = True
-                handle_dialog(req, res)
-            elif 'нет' in req['request']['nlu']['tokens']:
-                res['response']['text'] = 'Ну и ладно!'
-                res['end_session'] = True
-            else:
-                res['response']['text'] = 'Не поняла ответа! Так да или нет?'
-                init_buttons(req, res, ["Да", "Нет"])
-        else:
-            handle_dialog(req, res)
+
+        handle_dialog(req, res)
 
 
 def handle_dialog(req, res):
@@ -243,7 +231,9 @@ def handle_dialog(req, res):
         return end(req, res)
 
     if answer in ["Статистика", "статистика"]:
-        res['response']['text'] = str(user)
+        current = sessionStorage[user_id]['current_question'] - 1
+        question = Question(user.questions[current])
+        res['response']['text'] = str(user) + f"\n {str(question)}"
         init_buttons(req, res)
         return
     if answer in ["Помощь", "помощь"]:
@@ -255,7 +245,7 @@ def handle_dialog(req, res):
         return
     posible_answers = list(map(
         transform_answer, sessionStorage[user_id]["buttons"]))
-    if not answer in posible_answers:
+    if posible_answers and not answer in posible_answers:
         res['response']['text'] = "Что? Я не расслышала."
         init_buttons(req, res)
         return
@@ -293,8 +283,13 @@ def handle_dialog(req, res):
             analyze_answer(req, res, effect,
                            past_question.get_effects_on_answer(answer))
             res["response"]["tts"] = effect
-            init_buttons(req, res, ["Дальше", "Статистика"])
-            sessionStorage[user_id]['echo_effect'] = False
+
+            res['response']['text'] += f"\n{'**' * 40}\n {str(next_question)}"
+
+            init_buttons(req, res, next_question.get_answers_titles() + [hint_button_text, "Статистика"])
+            sessionStorage[user_id]['current_question'] += 1
+            # init_buttons(req, res, ["Дальше", "Статистика"])
+
             return
         if current in list(user.jumps_questions):
             res['response']['card'] = {}
@@ -313,7 +308,7 @@ def handle_dialog(req, res):
             return
         res['response']['text'] = str(next_question)
 
-        init_buttons(req, res, next_question.get_answers_titles() + [hint_button_text])
+        init_buttons(req, res, next_question.get_answers_titles() + [hint_button_text, "Статистика"])
         sessionStorage[user_id]['current_question'] += 1
         sessionStorage[user_id]['echo_effect'] = True
 
