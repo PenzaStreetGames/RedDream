@@ -16,8 +16,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/quest.json">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="171">
-              <caret line="591" column="293" selection-start-line="591" selection-start-column="293" selection-end-line="591" selection-end-column="293" />
+            <state relative-caret-position="152">
+              <caret line="1013" column="316" selection-start-line="1013" selection-start-column="316" selection-end-line="1013" selection-end-column="316" />
             </state>
           </provider>
         </entry>
@@ -72,23 +72,23 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scope">
-        <subPane subId="Scope 'Project Files'; set:Project Files; class com.intellij.psi.search.scope.ProjectFilesScope">
-          <expand>
-            <path>
-              <item name="RedDream" type="3d21c010:ScopeViewTreeModel$ProjectNode" />
-              <item name="" type="442cc68d:ScopeViewTreeModel$RootNode" />
-            </path>
-          </expand>
-          <select />
-        </subPane>
-      </pane>
       <pane id="ProjectPane">
         <subPane>
           <expand>
             <path>
               <item name="RedDream" type="b2602c69:ProjectViewProjectNode" />
               <item name="RedDream" type="462c0819:PsiDirectoryNode" />
+            </path>
+          </expand>
+          <select />
+        </subPane>
+      </pane>
+      <pane id="Scope">
+        <subPane subId="Scope 'Project Files'; set:Project Files; class com.intellij.psi.search.scope.ProjectFilesScope">
+          <expand>
+            <path>
+              <item name="RedDream" type="3d21c010:ScopeViewTreeModel$ProjectNode" />
+              <item name="" type="442cc68d:ScopeViewTreeModel$RootNode" />
             </path>
           </expand>
           <select />
@@ -179,6 +179,7 @@
       <workItem from="1559418814137" duration="90000" />
       <workItem from="1559468693644" duration="4067000" />
       <workItem from="1559640476133" duration="30000" />
+      <workItem from="1559833950859" duration="7323000" />
     </task>
     <task id="LOCAL-00001" summary="Создаю юзера">
       <created>1555515563370</created>
@@ -208,16 +209,24 @@
       <option name="project" value="LOCAL" />
       <updated>1559418873823</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="Историческая справка. Эпизод 2">
+      <created>1559834014534</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1559834014534</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="4253000" />
+    <option name="totallyTimeSpent" value="11576000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
+    <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.25266525" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.2553305" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -249,7 +258,8 @@
     <MESSAGE value="Создаю юзера" />
     <MESSAGE value="Подправил json Паши по его просьбе, создал генератор вопросов" />
     <MESSAGE value="Историческая справка. Эпизод 1" />
-    <option name="LAST_COMMIT_MESSAGE" value="Историческая справка. Эпизод 1" />
+    <MESSAGE value="Историческая справка. Эпизод 2" />
+    <option name="LAST_COMMIT_MESSAGE" value="Историческая справка. Эпизод 2" />
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/.idea/workspace.xml">
@@ -266,8 +276,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/quest.json">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="171">
-          <caret line="591" column="293" selection-start-line="591" selection-start-column="293" selection-end-line="591" selection-end-column="293" />
+        <state relative-caret-position="152">
+          <caret line="1013" column="316" selection-start-line="1013" selection-start-column="316" selection-end-line="1013" selection-end-column="316" />
         </state>
       </provider>
     </entry>
