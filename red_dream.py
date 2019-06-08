@@ -3,7 +3,7 @@ import logging
 import random
 import json
 
-site = "medal"
+site = "PenzaStreetNetworks"
 
 
 class User:
@@ -74,6 +74,7 @@ class Question:
     def __init__(self, obj):
         """инициализация вопроса"""
         self.text = obj["text"]
+        self.reference = obj["reference"]
         self.date = obj["date"]
         self.period = obj["period"]
         self.answers = obj["answers"]
@@ -102,9 +103,6 @@ class Question:
         for answer in self.answers:
             if transform_answer(answer["text"]) == data:
                 return answer["cause"]
-
-    def get_leader(self):
-        return quest["leaders"][self.period]
 
     def __str__(self):
         """Возвращает текст вопроса"""
@@ -243,6 +241,7 @@ def handle_dialog(req, res):
     elif answer in ["Рекорды", "рекорды"]:
         res['response']['text'] = get_records()
         return
+
     posible_answers = list(map(
         transform_answer, sessionStorage[user_id]["buttons"]))
     if posible_answers and not answer in posible_answers:
@@ -258,52 +257,56 @@ def handle_dialog(req, res):
 
         echo_effect = sessionStorage[user_id]['echo_effect']
         next_question = Question(user.questions[current])
-        if current and echo_effect:
+
+        if current and echo_effect and answer != "Завершить правление":
             past_question = Question(user.questions[current - 1])
             effect = past_question.get_cause_effect(answer)
-            real_answer = past_question.get_real_answer()
-            leader = past_question.get_leader()
+            reference = past_question.reference
+
             if answer.lower() == hint_button_text.lower():
-                if real_answer:
-                    res['response']['text'] = quest["hint_text"].format(
-                        real_answer)
+                if reference:
+                    question = Question(user.questions[current])
+                    res['response']['text'] = reference + \
+                        f"\n***\n{str(past_question)}"
+                    res["response"]["tts"] = f"{reference} {past_question}"
                 else:
                     res["response"]["text"] = quest["alternative_hint"]
                 init_buttons(req, res)
                 return
-            if real_answer is False:
-                addition = ""
-            elif transform_answer(real_answer) == answer:
-                addition = random.choice(quest["history_right"]).format(leader)
-            elif real_answer is not False:
-                addition = random.choice(quest["history_wrong"]).format(leader)
-            else:
-                addition = ""
-            effect = addition + effect
-            analyze_answer(req, res, effect,
-                           past_question.get_effects_on_answer(answer))
-            res["response"]["tts"] = effect
 
-            res['response']['text'] += f"\n{'**' * 40}\n {str(next_question)}"
+            if answer not in ["Начать правление", "Завершить правление"]:
+                analyze_answer(req, res, effect,
+                               past_question.get_effects_on_answer(answer))
+                res["response"]["tts"] = effect
+            if current in list(user.jumps_questions):
+                init_buttons(req, res, ["Завершить правление"])
 
-            init_buttons(req, res, next_question.get_answers_titles() + [hint_button_text, "Статистика"])
+                return
+            if current in user.jumps_questions:
+                res['response']['text'] = ""
+            res['response']['text'] += f"\n***\n {str(next_question)}"
+            res['response']['tts'] = res["response"].get("tts", "") + " " + str(
+                next_question)
+
+            init_buttons(req, res, next_question.get_answers_titles() + [
+                hint_button_text, "Статистика"])
             sessionStorage[user_id]['current_question'] += 1
             # init_buttons(req, res, ["Дальше", "Статистика"])
 
             return
-        if current in list(user.jumps_questions):
+        if answer == "Завершить правление" or current in user.jumps_questions:
             res['response']['card'] = {}
             res['response']['card']['type'] = 'BigImage'
             res['response']['card']['title'] = user.jumps_questions[
-                current].title() + "." + quest["jumps"][
-                user.jumps_questions[current]]["text"]
+                                                   current].title() + "." + quest["jumps"][
+                                                   user.jumps_questions[current]]["text"]
             res['response']['card']['image_id'] = quest["jumps"][
                 user.jumps_questions[current]]["image"]
             res['response']['text'] = user.jumps_questions[current].title()
             res["response"]["tts"] = res["response"].get("tts", "") + quest[
                 "jumps"][user.jumps_questions[current]]["text"]
 
-            init_buttons(req, res, ["Приступаем"])
+            init_buttons(req, res, ["Начать правление"])
             del user.jumps_questions[current]
             return
         res['response']['text'] = str(next_question)
